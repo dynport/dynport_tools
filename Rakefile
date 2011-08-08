@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "dynport_tools"
   gem.homepage = "http://github.com/tobstarr/dynport_tools"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Collection of various tools}
+  gem.description = %Q{Collection of various tools}
   gem.email = "tobias.schwab@dynport.de"
   gem.authors = ["Tobias Schwab"]
   # dependencies defined in Gemfile
