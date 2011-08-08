@@ -1,0 +1,18 @@
+<file name="some_name">
+  <size>101</size>
+  <title>Some Title</title>
+  <comments>
+    
+  </comments>
+  <attributes>
+    <rights>rw</rights>
+    <type>file</type>
+  </attributes>
+  <lines>
+    <line id="0">
+      <content>First Line</content>
+    </line>
+    <line id="1">
+    </line>
+  </lines>
+</file>

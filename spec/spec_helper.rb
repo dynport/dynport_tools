@@ -10,3 +10,5 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 RSpec.configure do |config|
   
 end
+
+ROOT = Pathname.new(File.expand_path("../../", __FILE__))
