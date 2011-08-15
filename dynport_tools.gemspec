@@ -10,8 +10,10 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
   s.date = %q{2011-08-15}
+  s.default_executable = %q{xmldiff}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
+  s.executables = ["xmldiff"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -26,6 +28,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "autotest/discover.rb",
+    "bin/xmldiff",
     "dynport_tools.gemspec",
     "lib/dynport_tools.rb",
     "lib/dynport_tools/differ.rb",
