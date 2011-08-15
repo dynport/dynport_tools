@@ -1,17 +1,17 @@
 require 'spec_helper'
 
-require "differ"
+require "dynport_tools/differ"
 
-describe Differ do
-  let(:differ) { Differ.new }
+describe DynportTools::Differ do
+  let(:differ) { DynportTools::Differ.new }
   
   describe "#initialize" do
     it "sets diff_all to true by default" do
-      Differ.new.diff_all.should == true
+      DynportTools::Differ.new.diff_all.should == true
     end
     
     it "sets diff_all to false when initialized with that option" do
-      Differ.new(:diff_all => false).diff_all.should == false
+      DynportTools::Differ.new(:diff_all => false).diff_all.should == false
     end
   end
   
@@ -132,10 +132,10 @@ describe Differ do
     end
     
     it "returns multiple messages" do
-      differ.diff_to_message_lines({ :a => { :b => [3, 4], :c => [nil, 1] } }, "c").should == [
+      differ.diff_to_message_lines({ :a => { :b => [3, 4], :c => [nil, 1] } }, "c").sort.should == [
         "expected c[a][b] to be <3> but was <4>",
         "expected c[a][c] to be <nil> but was <1>",
-      ]
+      ].sort
     end
   end
 end
