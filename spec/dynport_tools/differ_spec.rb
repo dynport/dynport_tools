@@ -106,6 +106,10 @@ describe DynportTools::Differ do
       differ.diff_to_message_lines(nil).should == []
     end
     
+    it "uses inspect when key is a hash" do
+      differ.diff_to_message_lines({ { :a => 1 } => [1, 2]}).should == ["expected {:a=>1} to be <1> but was <2>"]
+    end
+    
     it "returns a message for array" do
       differ.diff_to_message_lines([1, 2]).should == ["expected <1> to be <2>"]
     end

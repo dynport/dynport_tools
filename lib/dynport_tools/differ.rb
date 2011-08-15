@@ -58,7 +58,8 @@ module DynportTools
     end
   
     def merge_prefixes(prefix, key)
-      prefix ? "#{prefix}[#{key}]" : key
+      key_s = key.is_a?(Hash) ? key.inspect : key
+      prefix ? "#{prefix}[#{key_s}]" : key_s
     end
   end
 end
