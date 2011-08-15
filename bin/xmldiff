@@ -1,0 +1,16 @@
+require "dynport_tools"
+require "dynport_tools/differ"
+require "xml_file"
+
+file_a, file_b = ARGV[0,2]
+
+if file_a && File.exists?(file_a) && file_b && File.exists?(file_b)
+  a = XmlFile.new(file_a)
+  b = XmlFile.new(file_b)
+  differ = DynportTools::Differ.new
+  diff = differ.diff(a.nodes_hash, b.nodes_hash)
+  puts differ.diff_to_message_lines(diff)
+else
+  puts "USAGE: xml_diff <file> <file>"
+end
+  
