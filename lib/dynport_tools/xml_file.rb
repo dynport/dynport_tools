@@ -1,6 +1,6 @@
 require "nokogiri"
 
-class XmlFile
+class DynportTools::XmlFile
   attr_accessor :path
   
   def initialize(path)

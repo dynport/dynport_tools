@@ -1,16 +1,16 @@
 require 'spec_helper'
-require "xml_file"
+require "dynport_tools/xml_file"
 
 FILE1 = ROOT.join("spec/fixtures/file_a.xml")
 FILE2 = ROOT.join("spec/fixtures/file_b.xml")
 
 
-describe XmlFile do
-  let(:file) { XmlFile.new(FILE1) }
+describe "DynportTools::XmlFile" do
+  let(:file) { DynportTools::XmlFile.new(FILE1) }
   
   describe "#initialize" do
     it "sets the correct path" do
-      XmlFile.new(FILE1).path.should == FILE1.to_s
+      DynportTools::XmlFile.new(FILE1).path.should == FILE1.to_s
     end
   end
   

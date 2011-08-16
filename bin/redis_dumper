@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require "dynport_tools/redis_dumper"
+
+DynportTools::RedisDumper.new.run_from_args(ARGV)
