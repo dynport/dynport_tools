@@ -7,6 +7,7 @@ source "http://rubygems.org"
 # Include everything needed to run rake, tests, features, etc.
 gem 'nokogiri'
 gem 'redis'
+gem 'typhoeus'
 
 group :development do
   gem "rspec", "~> 2.3.0"
