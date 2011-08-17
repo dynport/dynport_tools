@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.2"
+  s.version = "0.2.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
@@ -32,15 +32,20 @@ Gem::Specification.new do |s|
     "bin/xmldiff",
     "dynport_tools.gemspec",
     "lib/dynport_tools.rb",
+    "lib/dynport_tools/deep_merger.rb",
     "lib/dynport_tools/differ.rb",
+    "lib/dynport_tools/jenkins.rb",
     "lib/dynport_tools/redis_dumper.rb",
     "lib/dynport_tools/xml_file.rb",
     "lib/have_attributes.rb",
+    "spec/dynport_tools/deep_merger_spec.rb",
     "spec/dynport_tools/differ_spec.rb",
+    "spec/dynport_tools/jenkins_spec.rb",
     "spec/dynport_tools/redis_dumper_spec.rb",
     "spec/dynport_tools/xml_file_spec.rb",
     "spec/dynport_tools_spec.rb",
     "spec/fixtures/file_a.xml",
+    "spec/fixtures/jenkins_job.xml",
     "spec/spec_helper.rb",
     "spec/xml_diff_spec.rb"
   ]
@@ -56,6 +61,7 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<nokogiri>, [">= 0"])
       s.add_runtime_dependency(%q<redis>, [">= 0"])
+      s.add_runtime_dependency(%q<typhoeus>, [">= 0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
@@ -67,6 +73,7 @@ Gem::Specification.new do |s|
     else
       s.add_dependency(%q<nokogiri>, [">= 0"])
       s.add_dependency(%q<redis>, [">= 0"])
+      s.add_dependency(%q<typhoeus>, [">= 0"])
       s.add_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
@@ -79,6 +86,7 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<nokogiri>, [">= 0"])
     s.add_dependency(%q<redis>, [">= 0"])
+    s.add_dependency(%q<typhoeus>, [">= 0"])
     s.add_dependency(%q<rspec>, ["~> 2.3.0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
