@@ -53,17 +53,20 @@ describe "DynportTools::RedisDumper" do
       hash = { "a" => 1 }
       dumper.should_receive(:zset_to_hash).and_return(hash)
       dumper.should_receive(:dump_hash).with(hash)
+      dumper.should_not_receive(:exit)
       dumper.run_from_args(["host", "port", "key"])
     end
     
     it "prints a message when type is not zset" do
       redis.should_receive(:type).with("key").and_return "hash"
+      dumper.should_receive(:exit).with(1)
       dumper.should_receive(:puts).with("only zsets are supported for now")
       dumper.run_from_args(["host", "port", "key"])
     end
     
     it "calls print_usage when not enough parameters" do
       dumper.should_receive(:print_usage)
+      dumper.should_receive(:exit).with(1)
       dumper.run_from_args(["host", "port"])
     end
   end

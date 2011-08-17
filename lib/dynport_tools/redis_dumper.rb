@@ -43,9 +43,11 @@ class DynportTools::RedisDumper
         dump_hash(zset_to_hash(key))
       else
         puts "only zsets are supported for now"
+        exit(1)
       end
     else
       print_usage
+      exit(1)
     end
   end
 
