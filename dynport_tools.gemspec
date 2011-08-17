@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.0"
+  s.version = "0.2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-08-16}
+  s.date = %q{2011-08-17}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
   s.executables = ["xmldiff", "redis_dumper"]
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".document",
+    ".rbenv-version",
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
