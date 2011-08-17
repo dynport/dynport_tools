@@ -60,14 +60,30 @@ describe "DynportTools::RedisDumper" do
     it "prints a message when type is not zset" do
       redis.should_receive(:type).with("key").and_return "hash"
       dumper.should_receive(:exit).with(1)
-      dumper.should_receive(:puts).with("only zsets are supported for now")
+      $stderr.should_receive(:puts).with("only zsets are supported for now")
       dumper.run_from_args(["host", "port", "key"])
     end
     
     it "calls print_usage when not enough parameters" do
-      dumper.should_receive(:print_usage)
+      dumper.should_receive(:print_usage_and_die)
+      dumper.run_from_args(["host", "port"])
+    end
+    
+    it "calls exit(1) when not enough parameters" do
+      $stderr.stub(:puts)
       dumper.should_receive(:exit).with(1)
       dumper.run_from_args(["host", "port"])
+    end
+  end
+  
+  describe "#print_usage_and_die" do
+    before(:each) do
+      dumper.stub!(:exit)
+    end
+    
+    it "writes to $stderr" do
+      $stderr.should_receive(:puts).with("USAGE: redis_dumper <redis_host> <redis_port> <key>")
+      dumper.print_usage_and_die
     end
   end
 end

@@ -42,16 +42,16 @@ class DynportTools::RedisDumper
       if key_type == "zset"
         dump_hash(zset_to_hash(key))
       else
-        puts "only zsets are supported for now"
+        $stderr.puts "only zsets are supported for now"
         exit(1)
       end
     else
-      print_usage
-      exit(1)
+      print_usage_and_die
     end
   end
 
-  def print_usage
-    puts "USAGE: redis_dumper <redis_host> <redis_port> <key>"
+  def print_usage_and_die
+    $stderr.puts "USAGE: redis_dumper <redis_host> <redis_port> <key>"
+    exit(1)
   end
 end
