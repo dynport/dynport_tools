@@ -81,5 +81,39 @@ describe "DynportTools::Jenkins" do
         :md5=>"14fa3890bea86820f7e45ce7f5a3ada4", :name=>"Job 1", :url=>"http://hudson.host:8080/job/Job1/"
       }
     end
+    
+    it "has a builder" do
+      builder = Nokogiri::XML::Builder.new(:encoding => "UTF-8") do |xml|
+        xml.project {
+          xml.actions
+          xml.description
+          xml.keepDependencies false
+          xml.properties
+          xml.scm(:class => "hudson.scm.NullSCM")
+          xml.canRoam true
+          xml.disabled false
+          xml.blockBuildWhenDownstreamBuilding false
+          xml.blockBuildWhenUpstreamBuilding false
+          xml.triggers(:class => "vector")
+          xml.concurrentBuild false
+          xml.builders do
+            xml.send("hudson.tasks.Shell") do
+              xml.command %(#!/bin/sh\nssh some.host "cd /some/path && ./script/runner -e production 'Some.command'")
+            end
+          end
+          xml.publishers
+          xml.buildWrappers do
+            xml.send("hudson.plugins.locksandlatches.LockWrapper") do
+              xml.locks do
+                xml.send("hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig") do
+                  xml.name "Popularities"
+                end
+              end
+            end
+          end
+        }
+      end
+      builder.to_xml.should == Nokogiri::XML(File.read(ROOT.join("spec/fixtures/jenkins_job.xml"))).to_s
+    end
   end
 end
