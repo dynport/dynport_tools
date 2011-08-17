@@ -65,18 +65,20 @@ describe "DynportTools::Jenkins" do
       )
     end
     
-    it "returns a hash with the correct job details" do
-      response1 = Typhoeus::Response.new(:code => 200, :headers => "", :body => "response1")
-      response2 = Typhoeus::Response.new(:code => 200, :headers => "", :body => "response2")
+    it "returns a hash with the correct job details and normalizes with nokogiri" do
+      response1 = Typhoeus::Response.new(:code => 200, :headers => "", :body => "<root><a>test1</a><b></b></root>")
+      response2 = Typhoeus::Response.new(:code => 200, :headers => "", :body => "<root><a>test2</a><b></b></root>")
       jenkins.hydra.stub(:get, "http://hudson.host:8080/job/Job1/config.xml").and_return(response1)
       jenkins.hydra.stub(:get, "http://hudson.host:8080/job/Job2/config.xml").and_return(response2)
       details = jenkins.job_details
       details.should be_an_instance_of(Hash)
-      details["http://hudson.host:8080/job/Job2/"].should == { :body=>"response2", :md5=>"6d8aa682668fbd4a324aa5299495cc69", 
-        :name => "Job 2", :url => "http://hudson.host:8080/job/Job2/"
+      details["http://hudson.host:8080/job/Job2/"].should == {
+        :body=>"<?xml version=\"1.0\"?>\n<root>\n  <a>test2</a>\n  <b/>\n</root>\n", 
+        :md5=>"b52105fcdd28fe6428df019e121f106a", :name=>"Job 2", :url=>"http://hudson.host:8080/job/Job2/"
       }
-      details["http://hudson.host:8080/job/Job1/"].should == { :body=>"response1", :md5=>"d20a5df8f659a0af0f08de8da34fe8bc", 
-        :name => "Job 1", :url => "http://hudson.host:8080/job/Job1/"
+      details["http://hudson.host:8080/job/Job1/"].should == {
+        :body=>"<?xml version=\"1.0\"?>\n<root>\n  <a>test1</a>\n  <b/>\n</root>\n", 
+        :md5=>"14fa3890bea86820f7e45ce7f5a3ada4", :name=>"Job 1", :url=>"http://hudson.host:8080/job/Job1/"
       }
     end
   end

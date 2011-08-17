@@ -26,7 +26,8 @@ class DynportTools::Jenkins
     jobs_hash.each do |url, job|
       request = Typhoeus::Request.new("#{url}config.xml")
       request.on_complete do |response|
-        jobs[url] = job.merge(:body => response.body, :md5 => Digest::MD5.hexdigest(response.body))
+        xml = Nokogiri::XML(response.body).to_s
+        jobs[url] = job.merge(:body => xml, :md5 => Digest::MD5.hexdigest(xml))
       end
       hydra.queue(request)
     end
