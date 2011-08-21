@@ -1,12 +1,11 @@
-require File.expand_path("../../../lib/differ", __FILE__)
-module HaveAttributesMatcher
+module DynportTools::HaveAttributesMatcher
   class HaveAttributes
     def initialize(expected)
       @expected = expected
     end
     
     def differ
-      @differ ||= Differ.new(:diff_all => false)
+      @differ ||= DynportTools::Differ.new(:diff_all => false)
     end
 
     def matches?(target)
