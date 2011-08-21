@@ -1,6 +1,6 @@
 module DynportTools
   class Differ
-    attr_accessor :diff_all, :use_return
+    attr_accessor :diff_all, :use_return, :symbolize_keys
   
   
     def initialize(options = {})
@@ -45,7 +45,13 @@ module DynportTools
   
     def diff_hash_values(a, b, keys)
       ret = keys.uniq.inject({}) do |hash, key|
-        if diff = diff(a[key], b[key])
+        value_a = a[key]
+        value_b = b[key]
+        if symbolize_keys
+          value_a ||= a[key.is_a?(Symbol) ? key.to_s : key.to_sym]
+          value_b ||= b[key.is_a?(Symbol) ? key.to_s : key.to_sym]
+        end
+        if diff = diff(value_a, value_b)
           hash[key] = diff
         end
         hash

@@ -21,6 +21,16 @@ describe DynportTools::Differ do
       differ.diff(hash, hash).should be_nil
     end
     
+    it "returns true when symbolize_keys is set to true and comparing hashes with symbols and strings" do
+      differ.symbolize_keys = true
+      differ.diff({ :a => 1 }, { "a" => 1 }).should be_nil
+    end
+    
+    it "returns false when symbolize_keys is set to false and comparing hashes with symbols and strings" do
+      differ.symbolize_keys = nil
+      differ.diff({ :a => 1 }, { "a" => 1 }).should_not be_nil
+    end
+    
     it "returns the diff when there is one" do
       a = { :a => 1, :b => 2 }
       b = { :a => 1, :b => 3 }
