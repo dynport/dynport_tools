@@ -49,4 +49,18 @@ describe "DynportTools::HaveAttributesMatcher" do
     matcher = DynportTools::HaveAttributesMatcher::HaveAttributes.new(:a => 1, :b => 2)
     matcher.matches?(:a => 1).should be_false
   end
+  
+  it "returns true when comparing ActiveRecord like objects with hashes" do
+    attributes = { "title" => "Some Title" }
+    ar = double("ar", :attributes => attributes)
+    matcher = DynportTools::HaveAttributesMatcher::HaveAttributes.new(:title => "Some Title")
+    matcher.matches?(ar).should be_true
+  end
+  
+  it "returns false when comparing ActiveRecord like objects with hashes but not equal" do
+    attributes = { "title" => "Some Title" }
+    ar = double("ar", :attributes => attributes)
+    matcher = DynportTools::HaveAttributesMatcher::HaveAttributes.new(:title => "Some Other Title")
+    matcher.matches?(ar).should be_false
+  end
 end

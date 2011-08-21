@@ -9,8 +9,13 @@ module DynportTools::HaveAttributesMatcher
     end
 
     def matches?(target)
-      @target = target
-      if diff = differ.diff(@expected, target)
+      @target = if target.respond_to?(:attributes)
+        differ.symbolize_keys = true
+        target.attributes
+      else
+        target
+      end
+      if diff = differ.diff(@expected, @target)
         @error = differ.diff_to_message_lines(diff).join("\n")
         false
       else
