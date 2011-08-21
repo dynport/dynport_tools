@@ -1,8 +1,28 @@
 require 'spec_helper'
 
 describe DynportTools::DeepMerger do
+  class SubHash < Hash
+  end
+  
+  class SubArray < Array
+  end
+  
   it "merges two hashes" do
     DynportTools::DeepMerger.merge({ :a => 1 }, { :b => 2 }).should == { :a => 1, :b => 2 }
+  end
+  
+  it "calls merge_hashes even if one is a subclass of hash" do
+    sh = SubHash.new
+    hash = { :a => 1 }
+    DynportTools::DeepMerger.should_receive(:merge_hashes).with(hash, sh).and_return "hash"
+    DynportTools::DeepMerger.merge(hash, sh).should == "hash"
+  end
+  
+  it "calls merge_arrays even if one is a subclass of array" do
+    sa = SubArray.new
+    array = [1]
+    DynportTools::DeepMerger.should_receive(:merge_arrays).with(sa, array).and_return "array"
+    DynportTools::DeepMerger.merge(sa, array).should == "array"
   end
   
   it "merges two arrays with same number of attributes" do

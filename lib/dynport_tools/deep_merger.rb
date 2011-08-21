@@ -1,14 +1,13 @@
 class DynportTools::DeepMerger
   class << self
     def merge(a, b)
-      if a.class == b.class
-        if a.is_a?(Hash)
-          return merge_hashes(a, b)
-        elsif a.is_a?(Array)
-          return merge_arrays(a, b)
-        end
+      if a.is_a?(Hash) && b.is_a?(Hash)
+        merge_hashes(a, b)
+      elsif a.is_a?(Array) && b.is_a?(Array)
+        merge_arrays(a, b)
+      else
+        b
       end
-      b
     end
     
     def merge_arrays(a, b)
