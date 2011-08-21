@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.3"
+  s.version = "0.2.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-08-17}
+  s.date = %q{2011-08-21}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
   s.executables = ["xmldiff", "redis_dumper"]
