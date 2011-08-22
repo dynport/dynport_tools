@@ -3,8 +3,8 @@ require 'spec_helper'
 require "dynport_tools/jenkins"
 
 describe "DynportTools::Jenkins" do
-  let(:root) { "http://some.url.com:8098" }
-  let(:jenkins) { DynportTools::Jenkins.new(root) }
+  let(:url) { "http://some.url.com:8098" }
+  let(:jenkins) { DynportTools::Jenkins.new(url) }
   
   describe "#initialize" do
     it "sets the root url" do
@@ -113,7 +113,7 @@ describe "DynportTools::Jenkins" do
           end
         }
       end
-      builder.to_xml.should == Nokogiri::XML(File.read(ROOT.join("spec/fixtures/jenkins_job.xml"))).to_s
+      builder.to_xml.should == Nokogiri::XML(File.read(root.join("spec/fixtures/jenkins_job.xml"))).to_s
     end
   end
 end

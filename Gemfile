@@ -18,4 +18,5 @@ group :development do
   gem "autotest"
   gem "autotest-growl"
   gem "ruby-debug"
+  gem "timecop"
 end

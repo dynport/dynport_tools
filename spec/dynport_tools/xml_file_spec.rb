@@ -1,9 +1,8 @@
 require 'spec_helper'
 require "dynport_tools/xml_file"
 
-FILE1 = ROOT.join("spec/fixtures/file_a.xml")
-FILE2 = ROOT.join("spec/fixtures/file_b.xml")
-
+FILE1 = root.join("spec/fixtures/file_a.xml")
+FILE2 = root.join("spec/fixtures/file_b.xml")
 
 describe "DynportTools::XmlFile" do
   let(:file) { DynportTools::XmlFile.new(FILE1) }
