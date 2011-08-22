@@ -14,6 +14,24 @@ describe DynportTools::RedisQ do
     redis.del("test/redis_queue/failed_counts")
   end
   
+  describe "#initialize" do
+    it "sets the retry_count to the default value when nil" do
+      DynportTools::RedisQ.new("some/queue").retry_count.should == 3
+    end
+    
+    it "sets the retry_count to a custom value when given" do
+      DynportTools::RedisQ.new("some/queue", :retry_count => 2).retry_count.should == 2
+    end
+    
+    it "sets the redis_key" do
+      DynportTools::RedisQ.new("some/queue").redis_key.should == "some/queue"
+    end
+    
+    it "sets the redis connection" do
+      DynportTools::RedisQ.new("some/queue", :redis => "redis con").redis.should == "redis con"
+    end
+  end
+  
   it "sets the redis key when initializing" do
     queue = DynportTools::RedisQ.new("some/queue")
     queue.redis_key.should == "some/queue"

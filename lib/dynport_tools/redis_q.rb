@@ -1,10 +1,11 @@
 class DynportTools::RedisQ
-  DEFAULT_RETRY_COUNT = 3
+  DEFAULTS = { :retry_count => 3 }
   attr_accessor :redis_key, :retry_count, :redis
   
   def initialize(redis_key, options = {})
-    self.redis_key = redis_key
-    self.retry_count = options[:retry_count] || DEFAULT_RETRY_COUNT
+    DEFAULTS.merge(options).merge(:redis_key => redis_key).each do |key, value|
+      self.send(:"#{key}=", value) if self.respond_to?(:"#{key}=")
+    end
   end
   
   def push(id, priority = nil, options = {})
