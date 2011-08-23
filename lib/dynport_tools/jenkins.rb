@@ -33,13 +33,14 @@ class DynportTools::Jenkins
   end
   
   class Project
-    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects
+    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
     def initialize(name)
       self.name = name
       self.commands = []
       self.child_projects = []
+      self.locks = []
     end
     
     def to_xml
@@ -95,6 +96,15 @@ class DynportTools::Jenkins
             end
           end
           xml.buildWrappers do
+            if locks.any?
+              xml.send("hudson.plugins.locksandlatches.LockWrapper") do
+                xml.locks do
+                  locks.each do |lock|
+                    xml.send("hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig") { xml.name lock }
+                  end
+                end
+              end
+            end
           end
         end
       end.to_xml

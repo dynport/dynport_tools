@@ -19,6 +19,10 @@ describe "DynportTools::Jenkins" do
         job.child_projects.should == []
       end
       
+      it "sets the commands to an empty array" do
+        job.locks.should == []
+      end
+      
       it "sets the name" do
         job.name.should == "Some Name"
       end
@@ -149,6 +153,22 @@ describe "DynportTools::Jenkins" do
           it "sets #{key} to #{value} in threshold" do
             triggers.first.at("threshold/#{key}").inner_text.should == value
           end
+        end
+      end
+      
+      describe "#with locks" do
+        let(:locks) { doc.xpath("/project/buildWrappers/hudson.plugins.locksandlatches.LockWrapper/locks/hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig") }
+        before(:each) do
+          job.locks << "exclusive3"
+          job.locks << "exclusive2"
+        end
+        
+        it "sets the correct amount of locks" do
+          locks.count.should == 2
+        end
+        
+        it "sets the correct locks" do
+          locks.map { |l| l.at("name").inner_text }.should == %w(exclusive3 exclusive2)
         end
       end
     end
