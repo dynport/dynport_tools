@@ -97,6 +97,29 @@ describe "DynportTools::Jenkins" do
           end
         end
       end
+      
+      describe "with num_to_keep set" do
+        before(:each) do
+          job.num_to_keep = 30
+        end
+        
+        it "sets num_to_keep to 30" do
+          doc.at("/project/logRotator/numToKeep").inner_text.should == "30"
+        end
+        
+        %w(daysToKeep artifactDaysToKeep artifactNumToKeep).each do |key|
+          it "sets #{key} to -1" do
+            doc.at("/project/logRotator/#{key}").inner_text.should == "-1"
+          end
+        end
+      end
+      
+      it "sets numToKeep and daysToKeep when both set" do
+        job.num_to_keep = 10
+        job.days_to_keep = 2
+        doc.at("/project/logRotator/numToKeep").inner_text.should == "10"
+        doc.at("/project/logRotator/daysToKeep").inner_text.should == "2"
+      end
     end
   end
   

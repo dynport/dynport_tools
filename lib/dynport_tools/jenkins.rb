@@ -36,7 +36,7 @@ class DynportTools::Jenkins
   end
   
   class Job
-    attr_accessor :commands, :crontab_pattern, :days_to_keep
+    attr_accessor :commands, :crontab_pattern, :days_to_keep, :num_to_keep
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
     def initialize
@@ -48,10 +48,10 @@ class DynportTools::Jenkins
         xml.project do
           xml.actions
           xml.description
-          if days_to_keep
+          if days_to_keep || num_to_keep
             xml.logRotator do
-              xml.daysToKeep days_to_keep
-              xml.numToKeep -1
+              xml.daysToKeep days_to_keep || -1
+              xml.numToKeep num_to_keep || -1 
               xml.artifactDaysToKeep -1
               xml.artifactNumToKeep -1
             end
