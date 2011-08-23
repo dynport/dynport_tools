@@ -224,6 +224,32 @@ describe "DynportTools::Jenkins" do
       jobs["http://hudson.host:8080/job/Job2/"].should == { :url => "http://hudson.host:8080/job/Job2/", :name => "Job 2"}
     end
   end
+  
+  it "sends the correct Typhoeus request when creating a project" do
+    xml = "some_xml"
+    Typhoeus::Request.should_receive(:post).with("http://some.url.com:8098/createItem?name=Test%20Job",
+      :headers => { "Content-Type" => "application/xml" }, :body => "some_xml"
+    )
+    jenkins.create_project("Test Job", xml)
+  end
+  
+  it "sends the correct request when updating a project" do
+    xml = "some_update"
+    Typhoeus::Request.should_receive(:post).with("http://some.url.com:8098/job/Test%20Job/config.xml",
+      :headers => { "Content-Type" => "application/xml" }, :body => "some_update"
+    )
+    jenkins.update_project("Test Job", xml)
+  end
+  
+  { 
+    :delete_project => "doDelete", :build_project => "build", :disable_project => "disable",
+    :enable_project => "enable"
+  }.each do |method, action|
+    it "posts to the correct url when calling #{action}" do
+      Typhoeus::Request.should_receive(:post).with("http://some.url.com:8098/job/Test%20Job/#{action}")
+      jenkins.send(method, "Test Job")
+    end
+  end
 
   describe "#job_details" do
     before(:each) do

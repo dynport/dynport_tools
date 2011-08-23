@@ -9,6 +9,42 @@ class DynportTools::Jenkins
     @hydra ||= Typhoeus::Hydra.new
   end
   
+  def create_project(name, xml)
+    Typhoeus::Request.post("#{url}/createItem?name=#{escape_job_name(name)}", 
+      :headers => { "Content-Type" => "application/xml" }, :body => xml
+    )
+  end
+  
+  def update_project(name, xml)
+    Typhoeus::Request.post("#{url}/job/#{escape_job_name(name)}/config.xml",
+      :headers => { "Content-Type" => "application/xml" }, :body => xml
+    )
+  end
+  
+  def delete_project(name)
+    send_to_project(name, "doDelete")
+  end
+  
+  def build_project(name)
+    send_to_project(name, "build")
+  end
+  
+  def disable_project(name)
+    send_to_project(name, "disable")
+  end
+  
+  def enable_project(name)
+    send_to_project(name, "enable")
+  end
+  
+  def send_to_project(name, action)
+    Typhoeus::Request.post("#{url}/job/#{escape_job_name(name)}/#{action}")
+  end
+  
+  def escape_job_name(name)
+    URI.escape(name)
+  end
+  
   def jobs_hash
     Nokogiri::XML(Typhoeus::Request.get("#{url}/api/xml").body).search("job").inject({}) do |hash, node|
       url = node.at("url").inner_text.strip if node.at("url")
