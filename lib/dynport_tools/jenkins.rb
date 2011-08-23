@@ -36,7 +36,7 @@ class DynportTools::Jenkins
   end
   
   class Job
-    attr_accessor :commands, :crontab_pattern, :days_to_keep, :num_to_keep
+    attr_accessor :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
     def initialize
@@ -59,6 +59,7 @@ class DynportTools::Jenkins
           xml.keepDependencies "false"
           xml.properties
           xml.scm(:class => DEFAUL_SCM)
+          xml.assignedNode node if node
           xml.canRoam "true"
           xml.disabled "false"
           xml.blockBuildWhenDownstreamBuilding "false"

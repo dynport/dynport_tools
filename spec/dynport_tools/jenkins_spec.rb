@@ -78,8 +78,15 @@ describe "DynportTools::Jenkins" do
       # <artifactNumToKeep>-1</artifactNumToKeep>
       # </logRotator>
       
-      it "does not include logRotator node when no rotating set up " do
-        doc.at("project/logRotator").should be_nil
+      %w(logRotator assignedNode).each do |key|
+        it "does not include a #{key} node by default" do
+          doc.at("/project/#{key}").should be_nil
+        end
+      end
+      
+      it "sets assignedNode when node is set" do
+        job.node = "processor"
+        doc.at("/project/assignedNode").inner_text.should == "processor"
       end
       
       describe "with days_to_keep set" do
