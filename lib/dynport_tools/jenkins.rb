@@ -34,4 +34,56 @@ class DynportTools::Jenkins
     hydra.run
     jobs
   end
+  
+  class Job
+    attr_accessor :commands, :crontab_pattern, :days_to_keep
+    DEFAUL_SCM = "hudson.scm.NullSCM"
+    
+    def initialize
+      self.commands = []
+    end
+    
+    def to_xml
+      Nokogiri::XML::Builder.new(:encoding => "UTF-8") do |xml|
+        xml.project do
+          xml.actions
+          xml.description
+          if days_to_keep
+            xml.logRotator do
+              xml.daysToKeep days_to_keep
+              xml.numToKeep -1
+              xml.artifactDaysToKeep -1
+              xml.artifactNumToKeep -1
+            end
+          end
+          xml.keepDependencies "false"
+          xml.properties
+          xml.scm(:class => DEFAUL_SCM)
+          xml.canRoam "true"
+          xml.disabled "false"
+          xml.blockBuildWhenDownstreamBuilding "false"
+          xml.blockBuildWhenUpstreamBuilding "false"
+          xml.triggers(:class => "vector") do
+            if crontab_pattern
+              xml.send("hudson.triggers.TimerTrigger") do
+                xml.spec crontab_pattern
+              end
+            end
+          end
+          xml.concurrentBuild "false"
+          xml.builders do
+            commands.each do |command|
+              xml.send("hudson.tasks.Shell") do
+                xml.command ["#!/bin/sh", command].join("\n")
+              end
+            end
+          end
+          xml.publishers do
+          end
+          xml.buildWrappers do
+          end
+        end
+      end.to_xml
+    end
+  end
 end

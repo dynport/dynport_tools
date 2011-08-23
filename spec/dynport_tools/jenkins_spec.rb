@@ -6,6 +6,100 @@ describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
   
+  describe "Job" do
+    let(:job) { DynportTools::Jenkins::Job.new }
+    let(:doc) { Nokogiri::XML(job.to_xml) }
+    
+    describe "#initialize" do
+      it "sets the commands to an empty array" do
+        job.commands.should == []
+      end
+    end
+    
+    describe "#to_xml" do
+      it "returns a string" do
+        job.to_xml.should be_kind_of(String)
+      end
+      
+      it "includes a xml header line" do
+        job.to_xml.should include(%(<?xml version="1.0" encoding="UTF-8"?>))
+      end
+      
+      it "includes a project root" do
+        job.to_xml.should include("<project>")
+        job.to_xml.should include("</project>")
+      end
+      
+      %w(actions description properties builders publishers buildWrappers).each do |key|
+        it "includes an empty node #{key}" do
+          doc.at("/project/#{key}").children.should be_empty
+        end
+      end
+      
+      { 
+        "keepDependencies" => "false",
+        "canRoam" => "true",
+        "disabled" => "false",
+        "blockBuildWhenDownstreamBuilding" => "false",
+        "blockBuildWhenUpstreamBuilding" => "false",
+        "concurrentBuild" => "false"
+      }.each do |key, value|
+        it "sets #{key} to #{value}" do
+          doc.at("/project/#{key}").inner_text.should == value
+        end
+      end
+      
+      { "scm" => "hudson.scm.NullSCM", "triggers" => "vector" }.each do |key, clazz|
+        it "sets the class of #{key} to #{clazz}" do
+          doc.at("/project/#{key}")["class"].should == clazz
+        end
+      end
+      
+      it "includes all set commands" do
+        job.commands << "hostname"
+        job.commands << "date"
+        shell_tasks = doc.search("project/builders/*")
+        shell_tasks.map(&:name).should == ["hudson.tasks.Shell", "hudson.tasks.Shell"]
+        shell_tasks.map { |node| node.at("command").inner_text }.should == ["#!/bin/sh\nhostname", "#!/bin/sh\ndate"]
+      end
+      
+      it "includes crontab like triggers" do
+        pattern = "0 2 * * *"
+        job.crontab_pattern = pattern
+        triggers = doc.search("project/triggers/*")
+        triggers.map(&:name).should == ["hudson.triggers.TimerTrigger"]
+        triggers.first.at("spec").inner_text.should == "0 2 * * *"
+      end
+      
+      # <logRotator>
+      # <daysToKeep>5</daysToKeep>
+      # <numToKeep>-1</numToKeep>
+      # <artifactDaysToKeep>-1</artifactDaysToKeep>
+      # <artifactNumToKeep>-1</artifactNumToKeep>
+      # </logRotator>
+      
+      it "does not include logRotator node when no rotating set up " do
+        doc.at("project/logRotator").should be_nil
+      end
+      
+      describe "with days_to_keep set" do
+        before(:each) do
+          job.days_to_keep = 7
+        end
+        
+        it "sets days_to_keep to 7" do
+          doc.at("/project/logRotator/daysToKeep").inner_text.should == "7"
+        end
+        
+        %w(numToKeep artifactDaysToKeep artifactNumToKeep).each do |key|
+          it "sets #{key} to -1" do
+            doc.at("/project/logRotator/#{key}").inner_text.should == "-1"
+          end
+        end
+      end
+    end
+  end
+  
   describe "#initialize" do
     it "sets the root url" do
       DynportTools::Jenkins.new("some/host").url.should == "some/host"
