@@ -15,6 +15,10 @@ describe "DynportTools::Jenkins" do
         job.commands.should == []
       end
       
+      it "sets the commands to an empty array" do
+        job.child_projects.should == []
+      end
+      
       it "sets the name" do
         job.name.should == "Some Name"
       end
@@ -75,13 +79,6 @@ describe "DynportTools::Jenkins" do
         triggers.first.at("spec").inner_text.should == "0 2 * * *"
       end
       
-      # <logRotator>
-      # <daysToKeep>5</daysToKeep>
-      # <numToKeep>-1</numToKeep>
-      # <artifactDaysToKeep>-1</artifactDaysToKeep>
-      # <artifactNumToKeep>-1</artifactNumToKeep>
-      # </logRotator>
-      
       %w(logRotator assignedNode).each do |key|
         it "does not include a #{key} node by default" do
           doc.at("/project/#{key}").should be_nil
@@ -130,6 +127,28 @@ describe "DynportTools::Jenkins" do
         job.days_to_keep = 2
         doc.at("/project/logRotator/numToKeep").inner_text.should == "10"
         doc.at("/project/logRotator/daysToKeep").inner_text.should == "2"
+      end
+      
+      describe "with child projects" do
+        let(:child1) { DynportTools::Jenkins::Project.new("child 1") }
+        let(:child2) { DynportTools::Jenkins::Project.new("child 2") }
+        let(:triggers) { doc.xpath("/project/publishers/hudson.tasks.BuildTrigger") }
+        
+        before(:each) do
+          job.child_projects << child2
+          job.child_projects << child1
+        end
+        
+        it "includes all child projects" do
+          triggers.count.should == 1
+          triggers.first.at("childProjects").inner_text.should == "child 2,child 1"
+        end
+        
+        { "name" => "SUCCESS", "ordinal" => "0", "color" => "BLUE" }.each do |key, value|
+          it "sets #{key} to #{value} in threshold" do
+            triggers.first.at("threshold/#{key}").inner_text.should == value
+          end
+        end
       end
     end
   end

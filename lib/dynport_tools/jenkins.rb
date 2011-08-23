@@ -36,12 +36,13 @@ class DynportTools::Jenkins
   end
   
   class Project
-    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node
+    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
     def initialize(name)
       self.name = name
       self.commands = []
+      self.child_projects = []
     end
     
     def to_xml
@@ -81,6 +82,16 @@ class DynportTools::Jenkins
             end
           end
           xml.publishers do
+            if child_projects.any?
+              xml.send("hudson.tasks.BuildTrigger") do
+                xml.childProjects child_projects.map { |c| c.name }.join(",")
+                xml.threshold do
+                  xml.name "SUCCESS"
+                  xml.ordinal "0"
+                  xml.color "BLUE"
+                end
+              end
+            end
           end
           xml.buildWrappers do
           end
