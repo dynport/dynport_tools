@@ -104,11 +104,6 @@ describe "DynportTools::ETA" do
     DynportTools::ETA.new(:current => 10, :total => 100, :started => time - 1).to_s.should == "10.0%, 10.0/second, ETA: 2011-02-03T04:50:09+01:00"
   end
   
-  it "returns the correct string for real live examples" do
-    Timecop.return
-    puts DynportTools::ETA.from_time_string("00:38:25", :current => 1385, :total => 28654).to_s
-  end
-  
   describe "#from_time_string" do
     it "sets the correct values" do
       eta = DynportTools::ETA.from_time_string("00:01:10", :total => 100)
