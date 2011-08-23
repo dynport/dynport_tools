@@ -7,12 +7,16 @@ describe "DynportTools::Jenkins" do
   let(:jenkins) { DynportTools::Jenkins.new(url) }
   
   describe "Project" do
-    let(:job) { DynportTools::Jenkins::Project.new }
+    let(:job) { DynportTools::Jenkins::Project.new("Some Name") }
     let(:doc) { Nokogiri::XML(job.to_xml) }
     
     describe "#initialize" do
       it "sets the commands to an empty array" do
         job.commands.should == []
+      end
+      
+      it "sets the name" do
+        job.name.should == "Some Name"
       end
     end
     

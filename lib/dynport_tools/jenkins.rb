@@ -36,10 +36,11 @@ class DynportTools::Jenkins
   end
   
   class Project
-    attr_accessor :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node
+    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
-    def initialize
+    def initialize(name)
+      self.name = name
       self.commands = []
     end
     
