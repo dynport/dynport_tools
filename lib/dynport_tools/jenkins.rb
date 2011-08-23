@@ -35,7 +35,7 @@ class DynportTools::Jenkins
     jobs
   end
   
-  class Job
+  class Project
     attr_accessor :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node
     DEFAUL_SCM = "hudson.scm.NullSCM"
     

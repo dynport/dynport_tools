@@ -6,8 +6,8 @@ describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
   
-  describe "Job" do
-    let(:job) { DynportTools::Jenkins::Job.new }
+  describe "Project" do
+    let(:job) { DynportTools::Jenkins::Project.new }
     let(:doc) { Nokogiri::XML(job.to_xml) }
     
     describe "#initialize" do
