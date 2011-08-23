@@ -57,7 +57,7 @@ class DynportTools::RedisQ
         yield(result.first)
         stats[:ok] << result.first
       rescue => err
-        stats[:errors][result.first] = err
+        stats[:errors][result.first] = ([err.message] + err.backtrace[0,5]).join("\n")
         entries_with_errors << result if mark_failed(result.first) < retry_count
       end
     end

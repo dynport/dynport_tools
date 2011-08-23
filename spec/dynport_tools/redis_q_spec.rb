@@ -139,7 +139,7 @@ describe DynportTools::RedisQ do
         processor.process(id)
       end
       stats[:ok].should == ["99", "101"]
-      stats[:errors]["100"].message.should == "some error"
+      stats[:errors]["100"].should match(/^some error/)
       redis.zrevrange(key, 0, -1, :with_scores => true).should == ["100", "9"]
     end
     
