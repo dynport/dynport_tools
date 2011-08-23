@@ -58,8 +58,12 @@ class DynportTools::Jenkins
           xml.keepDependencies "false"
           xml.properties
           xml.scm(:class => DEFAUL_SCM)
-          xml.assignedNode node if node
-          xml.canRoam "true"
+          if node
+            xml.assignedNode node 
+            xml.canRoam "false"
+          else
+            xml.canRoam "true"
+          end
           xml.disabled "false"
           xml.blockBuildWhenDownstreamBuilding "false"
           xml.blockBuildWhenUpstreamBuilding "false"

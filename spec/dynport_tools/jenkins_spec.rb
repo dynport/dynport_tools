@@ -88,6 +88,7 @@ describe "DynportTools::Jenkins" do
       it "sets assignedNode when node is set" do
         job.node = "processor"
         doc.at("/project/assignedNode").inner_text.should == "processor"
+        doc.at("/project/canRoam").inner_text.should == "false"
       end
       
       describe "with days_to_keep set" do
