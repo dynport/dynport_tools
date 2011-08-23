@@ -1,5 +1,4 @@
 require 'spec_helper'
-require "time"
 
 describe "DynportTools::ETA" do
   let(:eta) { DynportTools::ETA.new(:current => 17, :total => 100) }

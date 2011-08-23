@@ -1,6 +1,3 @@
-require "typhoeus"
-require "nokogiri"
-
 class DynportTools::Jenkins
   attr_accessor :url
   
