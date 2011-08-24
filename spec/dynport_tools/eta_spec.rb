@@ -100,7 +100,7 @@ describe "DynportTools::ETA" do
   end
   
   it "returns the correct string" do
-    DynportTools::ETA.new(:current => 10, :total => 100, :started => time - 1).to_s.should == "10.0%, 10.0/second, ETA: 2011-02-03T04:50:09+01:00"
+    DynportTools::ETA.new(:current => 10, :total => 100, :started => time - 1).to_s.should == "10.00%, 10.00/second, ETA: 2011-02-03T04:50:09+01:00"
   end
   
   describe "#from_time_string" do

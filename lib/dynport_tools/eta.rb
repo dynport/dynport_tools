@@ -38,7 +38,7 @@ class DynportTools::ETA
   end
   
   def to_s
-    "%.1f%%, %.1f/second, ETA: %s" % [percs * 100, per_second, eta.iso8601]
+    "%.2f%%, %.2f/second, ETA: %s" % [percs * 100, per_second, eta.iso8601]
   end
   
   def raise_error_when_current_or_total_not_set

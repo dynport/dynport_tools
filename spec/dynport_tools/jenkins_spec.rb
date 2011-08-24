@@ -6,6 +6,13 @@ describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
   
+  describe "RemoteProject" do
+    it "can be initialized" do
+      pending "fix ,e"
+      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name")
+    end
+  end
+  
   describe "Project" do
     let(:job) { DynportTools::Jenkins::Project.new("Some Name") }
     let(:doc) { Nokogiri::XML(job.to_xml) }
