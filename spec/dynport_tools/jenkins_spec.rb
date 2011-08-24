@@ -7,9 +7,51 @@ describe "DynportTools::Jenkins" do
   let(:jenkins) { DynportTools::Jenkins.new(url) }
   
   describe "RemoteProject" do
+    let(:remote_project) do
+      xml = File.read(root.join("spec/fixtures/jenkins_job.xml")) 
+      remote_project = DynportTools::Jenkins::RemoteProject.new(:xml => xml)
+      remote_project
+    end
+    
     it "can be initialized" do
-      pending "fix ,e"
-      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name")
+      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name", :rgne => "true").should return_values(:url => "some/url", :name => "Some Name")
+    end
+    
+    it "returns the correct " do
+      remote_project.commands.should == [%(ssh some.host \"touch /some/path/running.pid\")]
+    end
+    
+    it "returns the correct crontab_patterns" do
+      remote_project.crontab_patterns.should == ["0 4 * * *"]
+    end
+    
+    it "returns the correct childProjects" do
+      remote_project.child_projects.should == ["Project 2", "Project 6", "Prohect 9"]
+    end
+    
+    it "returns the correct locks" do
+      remote_project.locks.should == %w(Import)
+    end
+    
+    it "returns the correct md5" do
+      remote_project.md5.should == "e1076f2142dce55cdd6c39f2568c3d93"
+    end
+    
+    it "returns the correct disabled status" do
+      remote_project.should be_disabled
+    end
+    
+    it "returns false when not disabled" do
+      DynportTools::Jenkins::RemoteProject.new(:xml => "<project><disabled>false</disabled></project>").should_not be_disabled
+    end
+    
+    describe "#with nothing found" do
+      let(:empty_remote_project) { DynportTools::Jenkins::RemoteProject.new(:xml => "<project/>") }
+      [:child_projects, :commands, :crontab_patterns, :locks].each do |method|
+        it "returns an empty array for #{method}" do
+          empty_remote_project.send(method).should == []
+        end
+      end
     end
   end
   
@@ -187,7 +229,7 @@ describe "DynportTools::Jenkins" do
     end
   end
   
-  describe "#jobs_hash" do
+  describe "#projects_hash" do
     let(:body) do
       html =<<-HTML
         <hudson>
@@ -222,11 +264,11 @@ describe "DynportTools::Jenkins" do
     
     it "fetches the correct url" do
       Typhoeus::Request.should_receive(:get).with("http://some.url.com:8098/api/xml")
-      jenkins.jobs_hash
+      jenkins.projects_hash
     end
     
-    it "returns the correct jobs_hash" do
-      jobs = jenkins.jobs_hash
+    it "returns the correct projects_hash" do
+      jobs = jenkins.projects_hash
       jobs["http://hudson.host:8080/job/Job1/"].should == { :url => "http://hudson.host:8080/job/Job1/", :name => "Job 1"}
       jobs["http://hudson.host:8080/job/Job2/"].should == { :url => "http://hudson.host:8080/job/Job2/", :name => "Job 2"}
     end
@@ -258,9 +300,9 @@ describe "DynportTools::Jenkins" do
     end
   end
 
-  describe "#job_details" do
+  describe "#project_details" do
     before(:each) do
-      jenkins.stub!(:jobs_hash).and_return(
+      jenkins.stub!(:projects_hash).and_return(
         "http://hudson.host:8080/job/Job1/" => { :url => "http://hudson.host:8080/job/Job1/", :name => "Job 1"},
         "http://hudson.host:8080/job/Job2/" => { :url => "http://hudson.host:8080/job/Job2/", :name => "Job 2"}
       )
@@ -271,7 +313,7 @@ describe "DynportTools::Jenkins" do
       response2 = Typhoeus::Response.new(:code => 200, :headers => "", :body => "<root><a>test2</a><b></b></root>")
       jenkins.hydra.stub(:get, "http://hudson.host:8080/job/Job1/config.xml").and_return(response1)
       jenkins.hydra.stub(:get, "http://hudson.host:8080/job/Job2/config.xml").and_return(response2)
-      details = jenkins.job_details
+      details = jenkins.project_details
       details.should be_an_instance_of(Hash)
       details["http://hudson.host:8080/job/Job2/"].should == {
         :body=>"<?xml version=\"1.0\"?>\n<root>\n  <a>test2</a>\n  <b/>\n</root>\n", 
@@ -282,39 +324,30 @@ describe "DynportTools::Jenkins" do
         :md5=>"14fa3890bea86820f7e45ce7f5a3ada4", :name=>"Job 1", :url=>"http://hudson.host:8080/job/Job1/"
       }
     end
+  end
+
+  describe "#remote_projects" do
+    before(:each) do
+      jenkins.stub(:project_details).and_return({})
+    end
+    it "calls project_details" do
+      jenkins.should_receive(:project_details).and_return({})
+      jenkins.remote_projects
+    end
     
-    it "has a builder" do
-      builder = Nokogiri::XML::Builder.new(:encoding => "UTF-8") do |xml|
-        xml.project {
-          xml.actions
-          xml.description
-          xml.keepDependencies false
-          xml.properties
-          xml.scm(:class => "hudson.scm.NullSCM")
-          xml.canRoam true
-          xml.disabled false
-          xml.blockBuildWhenDownstreamBuilding false
-          xml.blockBuildWhenUpstreamBuilding false
-          xml.triggers(:class => "vector")
-          xml.concurrentBuild false
-          xml.builders do
-            xml.send("hudson.tasks.Shell") do
-              xml.command %(#!/bin/sh\nssh some.host "cd /some/path && ./script/runner -e production 'Some.command'")
-            end
-          end
-          xml.publishers
-          xml.buildWrappers do
-            xml.send("hudson.plugins.locksandlatches.LockWrapper") do
-              xml.locks do
-                xml.send("hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig") do
-                  xml.name "Popularities"
-                end
-              end
-            end
-          end
-        }
-      end
-      builder.to_xml.should == Nokogiri::XML(File.read(root.join("spec/fixtures/jenkins_job.xml"))).to_s
+    it "returns a hash" do
+      jenkins.remote_projects.should be_kind_of(Hash)
+    end
+    
+    it "sets RemoteProject as values for hash" do
+      jenkins.should_receive(:project_details).and_return(
+        "url1" => { :name => "Project 1", :body => "some xml", :url => "url1" },
+        "url2" => { :name => "Project 2", :body => "some other xml", :url => "url2" }
+      )
+      remote_projects = jenkins.remote_projects
+      remote_projects.values.map(&:class).should == [DynportTools::Jenkins::RemoteProject, DynportTools::Jenkins::RemoteProject]
+      remote_projects["url1"].should return_values(:url => "url1", :name => "Project 1", :xml => "some xml")
+      
     end
   end
 end

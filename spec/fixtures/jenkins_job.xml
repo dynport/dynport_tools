@@ -6,23 +6,35 @@
   <properties/>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers class="vector"/>
+  <triggers class="vector">
+    <hudson.triggers.TimerTrigger>
+      <spec>0 4 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#!/bin/sh
-ssh some.host &quot;cd /some/path &amp;&amp; ./script/runner -e production &apos;Some.command&apos;&quot;</command>
+      <command>ssh some.host &quot;touch /some/path/running.pid&quot;</command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>Project 2,Project 6, Prohect 9</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+  </publishers>
   <buildWrappers>
     <hudson.plugins.locksandlatches.LockWrapper>
       <locks>
         <hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig>
-          <name>Popularities</name>
+          <name>Import</name>
         </hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig>
       </locks>
     </hudson.plugins.locksandlatches.LockWrapper>

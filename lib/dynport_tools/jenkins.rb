@@ -45,7 +45,7 @@ class DynportTools::Jenkins
     URI.escape(name)
   end
   
-  def jobs_hash
+  def projects_hash
     Nokogiri::XML(Typhoeus::Request.get("#{url}/api/xml").body).search("job").inject({}) do |hash, node|
       url = node.at("url").inner_text.strip if node.at("url")
       name = node.at("name").inner_text.strip if node.at("name")
@@ -54,9 +54,9 @@ class DynportTools::Jenkins
     end
   end
   
-  def job_details
+  def project_details
     jobs = {}
-    jobs_hash.each do |url, job|
+    projects_hash.each do |url, job|
       request = Typhoeus::Request.new("#{url}config.xml")
       request.on_complete do |response|
         xml = Nokogiri::XML(response.body).to_s
@@ -66,6 +66,55 @@ class DynportTools::Jenkins
     end
     hydra.run
     jobs
+  end
+  
+  def remote_projects
+    project_details.inject({}) do |hash, (url, project_hash)|
+      # hash.merge!(url => RemoteProject.new(:url => url, :name => ))
+      hash.merge!(url => RemoteProject.new(:url => project_hash[:url], :name => project_hash[:name], :xml => project_hash[:body]))
+    end
+  end
+  
+  class RemoteProject
+    attr_accessor :url, :name, :xml
+    
+    def initialize(options = {})
+      options.each do |key, value|
+        self.send(:"#{key}=", value) if self.respond_to?(:"#{key}=")
+      end
+    end
+    
+    def doc
+      @doc ||= Nokogiri::XML(xml) if xml
+    end
+    
+    def md5
+      Digest::MD5.hexdigest(xml) if xml
+    end
+    
+    def commands
+      doc.xpath("/project/builders/hudson.tasks.Shell/command").map(&:inner_text)
+    end
+    
+    def crontab_patterns
+      doc.xpath("/project/triggers/hudson.triggers.TimerTrigger/spec").map(&:inner_text)
+    end
+    
+    def disabled?
+      doc.at("/project/disabled/text()").to_s == "true"
+    end
+    
+    def child_projects
+      if projects = doc.xpath("/project/publishers/hudson.tasks.BuildTrigger/childProjects").first
+        projects.inner_text.split(/\s*,\s*/)
+      else
+        []
+      end
+    end
+    
+    def locks
+ doc.xpath("/project/buildWrappers/hudson.plugins.locksandlatches.LockWrapper/locks/hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig/name").map(&:inner_text)
+    end
   end
   
   class Project
