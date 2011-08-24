@@ -5,6 +5,9 @@ require "dynport_tools/jenkins"
 describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
+  before(:each) do
+    Typhoeus::Request.stub!(:post).and_return nil
+  end
   
   describe "RemoteProject" do
     let(:remote_project) do
@@ -229,6 +232,14 @@ describe "DynportTools::Jenkins" do
     end
   end
   
+  describe "#post_request" do
+    it "clears the local cache" do
+      jenkins.instance_variable_set("@cache", { :a => 1 })
+      jenkins.post_request("some/path")
+      jenkins.instance_variable_get("@cache").should == {}
+    end
+  end
+  
   describe "#projects_hash" do
     let(:body) do
       html =<<-HTML
@@ -346,7 +357,7 @@ describe "DynportTools::Jenkins" do
       )
       remote_projects = jenkins.remote_projects
       remote_projects.values.map(&:class).should == [DynportTools::Jenkins::RemoteProject, DynportTools::Jenkins::RemoteProject]
-      remote_projects["url1"].should return_values(:url => "url1", :name => "Project 1", :xml => "some xml")
+      remote_projects["Project 1"].should return_values(:url => "url1", :name => "Project 1", :xml => "some xml")
       
     end
   end

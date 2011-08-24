@@ -10,15 +10,11 @@ class DynportTools::Jenkins
   end
   
   def create_project(name, xml)
-    Typhoeus::Request.post("#{url}/createItem?name=#{escape_job_name(name)}", 
-      :headers => { "Content-Type" => "application/xml" }, :body => xml
-    )
+    post_request "createItem?name=#{escape_job_name(name)}", :headers => { "Content-Type" => "application/xml" }, :body => xml
   end
   
   def update_project(name, xml)
-    Typhoeus::Request.post("#{url}/job/#{escape_job_name(name)}/config.xml",
-      :headers => { "Content-Type" => "application/xml" }, :body => xml
-    )
+    post_request "job/#{escape_job_name(name)}/config.xml", :headers => { "Content-Type" => "application/xml" }, :body => xml
   end
   
   def delete_project(name)
@@ -38,7 +34,16 @@ class DynportTools::Jenkins
   end
   
   def send_to_project(name, action)
-    Typhoeus::Request.post("#{url}/job/#{escape_job_name(name)}/#{action}")
+    post_request "job/#{escape_job_name(name)}/#{action}"
+  end
+  
+  def post_request(path, options = nil)
+    @cache = {}
+    Typhoeus::Request.post(*["#{url}/#{path}", options].compact)
+  end
+  
+  def cache
+    @cache ||= {}
   end
   
   def escape_job_name(name)
@@ -46,7 +51,7 @@ class DynportTools::Jenkins
   end
   
   def projects_hash
-    Nokogiri::XML(Typhoeus::Request.get("#{url}/api/xml").body).search("job").inject({}) do |hash, node|
+    cache[:projects_hash] ||= Nokogiri::XML(Typhoeus::Request.get("#{url}/api/xml").body).search("job").inject({}) do |hash, node|
       url = node.at("url").inner_text.strip if node.at("url")
       name = node.at("name").inner_text.strip if node.at("name")
       hash[url] = { :url => url, :name => name }
@@ -55,6 +60,7 @@ class DynportTools::Jenkins
   end
   
   def project_details
+    return cache[:projects_details] if cache[:projects_details]
     jobs = {}
     projects_hash.each do |url, job|
       request = Typhoeus::Request.new("#{url}config.xml")
@@ -65,13 +71,12 @@ class DynportTools::Jenkins
       hydra.queue(request)
     end
     hydra.run
-    jobs
+    cache[:projects_details] = jobs
   end
   
   def remote_projects
     project_details.inject({}) do |hash, (url, project_hash)|
-      # hash.merge!(url => RemoteProject.new(:url => url, :name => ))
-      hash.merge!(url => RemoteProject.new(:url => project_hash[:url], :name => project_hash[:name], :xml => project_hash[:body]))
+      hash.merge!(project_hash[:name] => RemoteProject.new(:url => project_hash[:url], :name => project_hash[:name], :xml => project_hash[:body]))
     end
   end
   
