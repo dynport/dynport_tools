@@ -1,10 +1,15 @@
 require "nokogiri"
 
 class DynportTools::XmlFile
-  attr_accessor :path
+  attr_accessor :path, :content
   
-  def initialize(path)
-    self.path = path.to_s
+  def initialize(path_or_options = nil)
+    if path_or_options.is_a?(Hash)
+      self.path = path_or_options[:path].to_s if path_or_options[:path].to_s
+      self.content = path_or_options[:content]
+    elsif !path_or_options.nil?
+      self.path = path_or_options.to_s
+    end
   end
   
   def nodes_hash
@@ -12,7 +17,7 @@ class DynportTools::XmlFile
   end
   
   def doc
-    @doc ||= Nokogiri::XML(File.open(path))
+    @doc ||= Nokogiri::XML(content || File.open(path))
   end
   
   def parse_node(node)

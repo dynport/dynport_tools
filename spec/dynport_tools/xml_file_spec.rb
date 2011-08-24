@@ -11,6 +11,30 @@ describe "DynportTools::XmlFile" do
     it "sets the correct path" do
       DynportTools::XmlFile.new(FILE1).path.should == FILE1.to_s
     end
+    
+    it "also sets the pathwhen given as hash" do
+      DynportTools::XmlFile.new(:path => FILE1).path.should == FILE1.to_s
+    end
+    
+    it "sets content when given" do
+      DynportTools::XmlFile.new(:content => "some content").content.should == "some content"
+    end
+  end
+  
+  describe "#doc" do
+    it "opens a file when set" do
+      f = double("f")
+      File.should_receive(:open).with("/some/path").and_return f
+      Nokogiri.should_receive(:XML).with(f).and_return nil
+      DynportTools::XmlFile.new("/some/path").doc
+    end
+    
+    it "parses the direct content when present" do
+      file = DynportTools::XmlFile.new
+      file.content = "some content"
+      Nokogiri.should_receive(:XML).with("some content").and_return nil
+      file.doc
+    end
   end
   
   describe "#nodes_hash" do
