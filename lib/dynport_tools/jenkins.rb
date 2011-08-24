@@ -97,6 +97,20 @@ class DynportTools::Jenkins
       Digest::MD5.hexdigest(xml) if xml
     end
     
+    def days_to_keep
+      logrotate_value_when_set("daysToKeep")
+    end
+    
+    def num_to_keep
+      logrotate_value_when_set("numToKeep")
+    end
+    
+    def logrotate_value_when_set(key)
+      if node = doc.at("/project/logRotator/#{key}")
+        node.inner_text.to_i if node.inner_text.to_i != -1
+      end
+    end
+    
     def commands
       doc.xpath("/project/builders/hudson.tasks.Shell/command").map(&:inner_text)
     end
@@ -117,27 +131,40 @@ class DynportTools::Jenkins
       end
     end
     
+    def email_addresses
+      doc.xpath("/project/publishers/hudson.tasks.Mailer/recipients").map { |rec| rec.inner_text.split(",") }.flatten
+    end
+    
+    def node
+      doc.xpath("/project/assignedNode").map { |n| n.inner_text }.first
+    end
+    
     def locks
  doc.xpath("/project/buildWrappers/hudson.plugins.locksandlatches.LockWrapper/locks/hudson.plugins.locksandlatches.LockWrapper_-LockWaitConfig/name").map(&:inner_text)
     end
   end
   
   class Project
-    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks
+    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks, :disabled, :description, :email_addresses
     DEFAUL_SCM = "hudson.scm.NullSCM"
     
-    def initialize(name)
+    def initialize(name = nil)
       self.name = name
       self.commands = []
       self.child_projects = []
+      self.email_addresses = []
       self.locks = []
+    end
+    
+    def md5
+      Digest::MD5.hexdigest(to_xml)
     end
     
     def to_xml
       Nokogiri::XML::Builder.new(:encoding => "UTF-8") do |xml|
         xml.project do
           xml.actions
-          xml.description
+          xml.description *[description].compact
           if days_to_keep || num_to_keep
             xml.logRotator do
               xml.daysToKeep days_to_keep || -1
@@ -146,18 +173,18 @@ class DynportTools::Jenkins
               xml.artifactNumToKeep -1
             end
           end
-          xml.keepDependencies "false"
+          xml.keepDependencies false
           xml.properties
           xml.scm(:class => DEFAUL_SCM)
           if node
             xml.assignedNode node 
-            xml.canRoam "false"
+            xml.canRoam false
           else
-            xml.canRoam "true"
+            xml.canRoam true
           end
-          xml.disabled "false"
-          xml.blockBuildWhenDownstreamBuilding "false"
-          xml.blockBuildWhenUpstreamBuilding "false"
+          xml.disabled disabled ? true : false
+          xml.blockBuildWhenDownstreamBuilding false
+          xml.blockBuildWhenUpstreamBuilding false
           xml.triggers(:class => "vector") do
             if crontab_pattern
               xml.send("hudson.triggers.TimerTrigger") do
@@ -165,11 +192,11 @@ class DynportTools::Jenkins
               end
             end
           end
-          xml.concurrentBuild "false"
+          xml.concurrentBuild false
           xml.builders do
             commands.each do |command|
               xml.send("hudson.tasks.Shell") do
-                xml.command ["#!/bin/sh", command].join("\n")
+                xml.command command
               end
             end
           end
@@ -182,6 +209,13 @@ class DynportTools::Jenkins
                   xml.ordinal "0"
                   xml.color "BLUE"
                 end
+              end
+            end
+            if email_addresses.any?
+              xml.send("hudson.tasks.Mailer") do
+                xml.recipients email_addresses.join(",")
+                xml.dontNotifyEveryUnstableBuild true
+                xml.sendToIndividuals false
               end
             end
           end

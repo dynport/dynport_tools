@@ -17,11 +17,17 @@ describe "DynportTools::Jenkins" do
     end
     
     it "can be initialized" do
-      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name", :rgne => "true").should return_values(:url => "some/url", :name => "Some Name")
+      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name", :rgne => "true").should return_values(:url => "some/url", 
+        :name => "Some Name"
+      )
     end
     
     it "returns the correct " do
       remote_project.commands.should == [%(ssh some.host \"touch /some/path/running.pid\")]
+    end
+    
+    it "returns an empty array when no commands found" do
+      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name", :xml => "<project/>").commands.should be_empty
     end
     
     it "returns the correct crontab_patterns" do
@@ -37,15 +43,42 @@ describe "DynportTools::Jenkins" do
     end
     
     it "returns the correct md5" do
-      remote_project.md5.should == "e1076f2142dce55cdd6c39f2568c3d93"
+      remote_project.stub!(:xml).and_return "some xml"
+      remote_project.md5.should == "53bdfcda073f189a71901011123abf9a"
+    end
+    
+    describe "logrotate" do
+      it "returns the correct amount of days_to_keep" do
+        remote_project.days_to_keep.should == 7
+      end
+
+      it "returns nil when days_to_keep == -1" do
+        DynportTools::Jenkins::RemoteProject.new(:xml => "<project><logRotator><daysToKeep>-1</daysToKeep></logRotator></project>").days_to_keep.should be_nil
+      end
+      
+      it "returns nil for num_to_keep when -1" do
+        remote_project.num_to_keep.should be_nil
+      end
+      
+      it "returns the correct value for num_to_keep when set" do
+        DynportTools::Jenkins::RemoteProject.new(:xml => "<project><logRotator><numToKeep>20</numToKeep></logRotator></project>").num_to_keep.should == 20
+      end
     end
     
     it "returns the correct disabled status" do
       remote_project.should be_disabled
     end
     
+    it "returns the correct email_addresses" do
+      remote_project.email_addresses.should == %w(test@test.xx)
+    end
+    
     it "returns false when not disabled" do
       DynportTools::Jenkins::RemoteProject.new(:xml => "<project><disabled>false</disabled></project>").should_not be_disabled
+    end
+    
+    it "extracts the correct node" do
+      remote_project.node.should == "Import"
     end
     
     describe "#with nothing found" do
@@ -75,6 +108,10 @@ describe "DynportTools::Jenkins" do
         job.locks.should == []
       end
       
+      it "sets the email addresses to an empty array" do
+        job.email_addresses.should == []
+      end
+      
       it "sets the name" do
         job.name.should == "Some Name"
       end
@@ -94,10 +131,17 @@ describe "DynportTools::Jenkins" do
         job.to_xml.should include("</project>")
       end
       
-      %w(actions description properties builders publishers buildWrappers).each do |key|
+      %w(actions description properties publishers buildWrappers).each do |key|
         it "includes an empty node #{key}" do
           doc.at("/project/#{key}").children.should be_empty
         end
+      end
+      
+      it "sets the correct email_addresses when present" do
+        job.email_addresses = %w(test@test.xx test2@test.xx)
+        doc.xpath("/project/publishers/hudson.tasks.Mailer/recipients").map(&:inner_text).should == ["test@test.xx,test2@test.xx"]
+        doc.at("/project/publishers/hudson.tasks.Mailer/dontNotifyEveryUnstableBuild").inner_text.should == "true"
+        doc.at("/project/publishers/hudson.tasks.Mailer/sendToIndividuals").inner_text.should == "false"
       end
       
       { 
@@ -113,6 +157,11 @@ describe "DynportTools::Jenkins" do
         end
       end
       
+      it "sets disabled to true when set" do
+        job.disabled = true
+        doc.at("/project/disabled").inner_text.should == "true"
+      end
+      
       { "scm" => "hudson.scm.NullSCM", "triggers" => "vector" }.each do |key, clazz|
         it "sets the class of #{key} to #{clazz}" do
           doc.at("/project/#{key}")["class"].should == clazz
@@ -124,7 +173,7 @@ describe "DynportTools::Jenkins" do
         job.commands << "date"
         shell_tasks = doc.search("project/builders/*")
         shell_tasks.map(&:name).should == ["hudson.tasks.Shell", "hudson.tasks.Shell"]
-        shell_tasks.map { |node| node.at("command").inner_text }.should == ["#!/bin/sh\nhostname", "#!/bin/sh\ndate"]
+        shell_tasks.map { |node| node.at("command").inner_text }.should == ["hostname", "date"]
       end
       
       it "includes crontab like triggers" do
@@ -145,6 +194,16 @@ describe "DynportTools::Jenkins" do
         job.node = "processor"
         doc.at("/project/assignedNode").inner_text.should == "processor"
         doc.at("/project/canRoam").inner_text.should == "false"
+      end
+      
+      it "allows setting a description" do
+        job.description = "some description"
+        doc.at("/project/description").inner_text.should == "some description"
+      end
+      
+      it "returns the correct md5" do
+        job.stub(:to_xml).and_return "some test"
+        job.md5.should == "f1b75ac7689ff88e1ecc40c84b115785"
       end
       
       describe "with days_to_keep set" do
@@ -358,7 +417,6 @@ describe "DynportTools::Jenkins" do
       remote_projects = jenkins.remote_projects
       remote_projects.values.map(&:class).should == [DynportTools::Jenkins::RemoteProject, DynportTools::Jenkins::RemoteProject]
       remote_projects["Project 1"].should return_values(:url => "url1", :name => "Project 1", :xml => "some xml")
-      
     end
   end
 end
