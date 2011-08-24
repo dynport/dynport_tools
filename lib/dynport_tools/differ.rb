@@ -33,8 +33,41 @@ module DynportTools
         []
       end
     end
+    
+    def diff_strings(a, b)
+      chunks = []
+      last = 0
+      Diff::LCS.diff(a, b).each do |group|
+        old_s = []
+        new_s = []
+        removed_elements(group).each_with_index do |c, i|
+          chunks << a[last..(c.position - 1)] if i == 0
+          old_s << c.element 
+          last = c.position + 1
+        end
+        added_elements(group).each_with_index do |c, i|
+          if i == 0 && removed_elements(group).empty?
+            chunks << a[last..(c.position - 1)]
+            last = c.position
+          end
+          new_s << c.element
+        end
+        if (old_s.join("").length > 0 || new_s.join("").length > 0)
+          chunks << Term::ANSIColor.bold("<#{Term::ANSIColor.red(old_s.join(""))}|#{Term::ANSIColor.green(new_s.join(""))}>")
+        end
+      end
+      chunks.join("")
+    end
   
   private
+    def removed_elements(group)
+      group.select { |c| c.action == "-" }
+    end
+
+    def added_elements(group)
+      group.select { |c| c.action == "+" }
+    end
+    
     def expected_value(value)
       "<#{value.inspect}>"
     end

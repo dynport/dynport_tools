@@ -1,9 +1,11 @@
 require 'spec_helper'
 
-require "dynport_tools/differ"
-
 describe DynportTools::Differ do
   let(:differ) { DynportTools::Differ.new }
+  
+  def uncolor(str)
+    str.gsub(/\e\[(\d+)m/, '')
+  end
   
   describe "#initialize" do
     it "sets diff_all to true by default" do
@@ -12,6 +14,26 @@ describe DynportTools::Differ do
     
     it "sets diff_all to false when initialized with that option" do
       DynportTools::Differ.new(:diff_all => false).diff_all.should == false
+    end
+  end
+  
+  describe "#diff_strings" do
+    it "diffs two strings" do
+      a = %("#!/bin/sh\nssh some.server 'cd /path/to/project && script/runner -e production_slave \"do something\"")
+      b = %("#!/bin/sh\nssh some.server \"cd /path/to/project && ./script/runner -e production 'do something'\")
+      uncolor(differ.diff_strings(a, b)).should == %("#!/bin/sh\nssh some.server <'|">cd /path/to/project && <|./>script/runner -e production<_slave|> <"|'>do something<"|'>")
+    end
+
+    it "diffes simple strings" do
+      a = %(-e production_slave "something)
+      b = %(-e production "something)
+      uncolor(differ.diff_strings(a, b)).should == %(-e production<_slave|> "something)
+    end
+
+    it "diffs a little bit more complicated string" do
+      a = %(-e production_slave "something)
+      b = %(-e production 'something)
+      uncolor(differ.diff_strings(a, b)).should == %(-e production<_slave|> <"|'>something)
     end
   end
   

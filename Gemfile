@@ -8,6 +8,8 @@ source "http://rubygems.org"
 gem 'nokogiri'
 gem 'redis'
 gem 'typhoeus'
+gem "term-ansicolor"
+gem 'diff-lcs'
 
 group :development do
   gem "rspec", "~> 2.3.0"
