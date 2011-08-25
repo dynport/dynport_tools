@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.10"
+  s.version = "0.2.11"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-08-24}
+  s.date = %q{2011-08-25}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
   s.executables = ["xmldiff", "redis_dumper"]
@@ -70,6 +70,8 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<nokogiri>, [">= 0"])
       s.add_runtime_dependency(%q<redis>, [">= 0"])
       s.add_runtime_dependency(%q<typhoeus>, [">= 0"])
+      s.add_runtime_dependency(%q<term-ansicolor>, [">= 0"])
+      s.add_runtime_dependency(%q<diff-lcs>, [">= 0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
@@ -83,6 +85,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<nokogiri>, [">= 0"])
       s.add_dependency(%q<redis>, [">= 0"])
       s.add_dependency(%q<typhoeus>, [">= 0"])
+      s.add_dependency(%q<term-ansicolor>, [">= 0"])
+      s.add_dependency(%q<diff-lcs>, [">= 0"])
       s.add_dependency(%q<rspec>, ["~> 2.3.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
@@ -97,6 +101,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<nokogiri>, [">= 0"])
     s.add_dependency(%q<redis>, [">= 0"])
     s.add_dependency(%q<typhoeus>, [">= 0"])
+    s.add_dependency(%q<term-ansicolor>, [">= 0"])
+    s.add_dependency(%q<diff-lcs>, [">= 0"])
     s.add_dependency(%q<rspec>, ["~> 2.3.0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
