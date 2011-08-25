@@ -155,23 +155,12 @@ describe DynportTools::Differ do
       differ.diff_to_message_lines({ :a => [1, 2]}).should == ["expected a to return <1> but did <2>"]
     end
     
-    it "adds a prefix when diff is array" do
-      differ.diff_to_message_lines({ :a => [1, 2]}, "b").should == ["expected b[a] to be <1> but was <2>"]
-    end
-    
     it "returns the correctly nested diff" do
-      differ.diff_to_message_lines({ :a => { :b => [3, 4] } }).should == ["expected a[b] to be <3> but was <4>"]
+      differ.diff_to_message_lines({ :a => { :b => [3, 4] } }).should == ["expected a/b to be <3> but was <4>"]
     end
     
-    it "returns the correctly neep nested diff" do
-      differ.diff_to_message_lines({ :a => { :b => [3, 4] } }, "c").should == ["expected c[a][b] to be <3> but was <4>"]
-    end
-    
-    it "returns multiple messages" do
-      differ.diff_to_message_lines({ :a => { :b => [3, 4], :c => [nil, 1] } }, "c").sort.should == [
-        "expected c[a][b] to be <3> but was <4>",
-        "expected c[a][c] to be <nil> but was <1>",
-      ].sort
+    it "returns the correctly nested even complexer diff" do
+      differ.diff_to_message_lines({ :a => { :b => { { :c => 1 } => [3, 4] } } }).should == ["expected a/b/{:c=>1} to be <3> but was <4>"]
     end
   end
   

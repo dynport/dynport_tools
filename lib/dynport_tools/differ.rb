@@ -24,28 +24,24 @@ module DynportTools
       elsif the_diff.is_a?(Hash)
         the_diff.each do |key, diff|
           if diff.is_a?(Array)
-            yield([prefix, key], diff.first, diff.at(1))
+            yield([prefix, key].flatten.compact, diff.first, diff.at(1))
           else
-            each_diff(diff, merge_prefixes(prefix, key), &block)
+            each_diff(diff, [prefix, key], &block)
           end
         end
       end
     end
   
-    def diff_to_message_lines(the_diff, prefix = nil)
-      if the_diff.is_a?(Array)
-        ["expected #{expected_value(the_diff.first)} to be #{expected_value(the_diff.at(1))}"]
-      elsif the_diff.is_a?(Hash)
-        the_diff.map do |key, diff|
-          if diff.is_a?(Array)
-            "expected #{merge_prefixes(prefix, key)} to #{use_return ? "return" : "be"} #{expected_value(diff.first)} but #{use_return ? "did" : "was"} #{expected_value(diff.at(1))}"
-          else
-            diff_to_message_lines(diff, merge_prefixes(prefix, key))
-          end
-        end.flatten
-      else
-        []
+    def diff_to_message_lines(the_diff)
+      diffs = []
+      each_diff(the_diff) do |keys, old_value, new_value|
+        if keys.nil?
+          diffs << "expected #{expected_value(old_value)} to be #{expected_value(new_value)}"
+        else
+          diffs << "expected #{keys_to_s(keys)} to #{use_return ? "return" : "be"} #{expected_value(old_value)} but #{use_return ? "did" : "was"} #{expected_value(new_value)}"
+        end
       end
+      diffs
     end
     
     def diff_strings(a, b)
@@ -108,6 +104,10 @@ module DynportTools
   
     def both?(a, b, clazz)
       a.is_a?(clazz) && b.is_a?(clazz)
+    end
+    
+    def keys_to_s(keys)
+      keys.compact.map { |k| k.is_a?(Hash) ? k.inspect : k }.join("/")
     end
   
     def merge_prefixes(prefix, key)
