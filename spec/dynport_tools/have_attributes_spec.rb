@@ -42,7 +42,7 @@ describe "DynportTools::HaveAttributesMatcher" do
   it "returns the correct error message for complex hashes" do
     matcher = DynportTools::HaveAttributesMatcher::HaveAttributes.new(:a => { :b => [1] })
     matcher.matches?(:a => { :b => [2] }).should be_false
-    matcher.failure_message.should == "expected a[b][0] to be <1> but was <2>"
+    matcher.failure_message.should == "expected a/b/0 to be <1> but was <2>"
   end
   
   it "returns false when target hash as viewer values than expected" do
