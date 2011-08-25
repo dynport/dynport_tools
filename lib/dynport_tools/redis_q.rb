@@ -20,8 +20,10 @@ class DynportTools::RedisQ
   
   def push_many(array, options = {})
     redis.multi do
-     array.each do | (id, popularity) |
-        push(id, popularity, options.merge(:no_multi => true))
+      array.each do | (id, popularity) |
+        (id.is_a?(Hash) ? id : { id => popularity }).each do |id2, popularity2|
+          push(id2, popularity2, options.merge(:no_multi => true))
+        end
       end
     end
   end
@@ -38,27 +40,28 @@ class DynportTools::RedisQ
     redis.zcard(redis_key)
   end
   
-  def pop
-    redis.multi do
-      redis.zrevrange(redis_key, 0, 0, :with_scores => true)
-      redis.zremrangebyrank(redis_key, -1, -1)
-    end.first
+  def pop(number = 1)
+    Hash[*redis.multi do
+      redis.zrevrange(redis_key, 0, number - 1, :with_scores => true)
+      redis.zremrangebyrank(redis_key, 0 - number, -1)
+    end.first]
   end
   
   def failed_tries
     @failed_tries ||= Hash.new(0)
   end
   
-  def each
+  def each(options = {})
     entries_with_errors = []
     stats = { :errors => {}, :ok => [] }
-    while (result = pop).any?
+    batch_size = options[:batch_size].to_i if options[:batch_size].to_i > 0
+    while (result_hash = pop(batch_size || 1)).any?
       begin
-        yield(result.first)
-        stats[:ok] << result.first
+        yield(batch_size ? result_hash.to_a.sort_by { |a| a.last }.reverse.map { |a| a.first } : result_hash.keys.first)
+        stats[:ok] << result_hash.keys.join(",")
       rescue => err
-        stats[:errors][result.first] = ([err.message] + err.backtrace[0,5]).join("\n")
-        entries_with_errors << result if mark_failed(result.first) < retry_count
+        stats[:errors][result_hash.keys.join(",")] = ([err.message] + err.backtrace[0,5]).join("\n")
+        entries_with_errors << result_hash if mark_failed(result_hash.keys.join(",")) < retry_count
       end
     end
     push_many(entries_with_errors, :failed => true) if entries_with_errors.any?

@@ -37,6 +37,23 @@ describe DynportTools::RedisQ do
     queue.redis_key.should == "some/queue"
   end
   
+  describe "#push_many" do
+    it "pushes nested arrays" do
+      queue.push_many([[1, 2], [3, 4]])
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["3", "4", "1", "2"]
+    end
+    
+    it "also pushes hashes" do
+      queue.push_many({ 2 => 4, 6 => 8})
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["6", "8", "2", "4"]
+    end
+    
+    it "adds arrays of hashes" do
+      queue.push_many([{ 2 => 4 }, { 6 => 8}])
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["6", "8", "2", "4"]
+    end
+  end
+  
   describe "#push" do
     it "pushes the records with negative timestamps" do
       Timecop.freeze(Time.at(112233))
@@ -98,7 +115,18 @@ describe DynportTools::RedisQ do
     end
     
     it "returns the highest member and rank" do
-      queue.pop.should == ["101", "100"]
+      queue.pop.should == { "101" => "100" }
+    end
+    
+    it "can also return 2 elements" do
+      queue.pop(2).should == { "101" => "100", "98" => "10" }
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "1"]
+    end
+    
+    it "can also return 3 elements" do
+      queue.push("1", "0")
+      queue.pop(3).should == { "101" => "100", "98" => "10", "99" => "1" }
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["1", "0"]
     end
     
     it "removes the member from the set" do
@@ -110,7 +138,7 @@ describe DynportTools::RedisQ do
       queue.pop
       queue.pop
       queue.pop
-      queue.pop.should == []
+      queue.pop.should == {}
     end
   end
   
@@ -124,6 +152,18 @@ describe DynportTools::RedisQ do
         ids << id
       end
       ids.should == ["100", "99", "101"]
+      redis.zrevrange(key, 0, -1, :with_scores => true).should == []
+    end
+    
+    it "is able to yield batches" do
+      queue.push(99, 1)
+      queue.push(100, 9)
+      queue.push(101, 0)
+      all_ids = []
+      queue.each(:batch_size => 2) do |ids|
+        all_ids << ids
+      end
+      all_ids.should == [["100", "99"], ["101"]]
       redis.zrevrange(key, 0, -1, :with_scores => true).should == []
     end
     
