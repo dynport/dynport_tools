@@ -174,4 +174,16 @@ describe DynportTools::Differ do
       ].sort
     end
   end
+  
+  describe "#each_diff" do
+    it "calls dummy with correct attributes" do
+      d = double("to be called")
+      d.should_receive(:called).with([:a, :b], 3, 4)
+      d.should_receive(:called).with([:a, :c], nil, 1)
+      
+      differ.each_diff({ :a => { :b => [3, 4], :c => [nil, 1] } }) do |path, old, new|
+        d.called(path, old, new)
+      end
+    end
+  end
 end

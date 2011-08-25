@@ -17,6 +17,20 @@ module DynportTools
         [a, b] if a != b
       end
     end
+    
+    def each_diff(the_diff, prefix = nil, &block)
+      if the_diff.is_a?(Array)
+        yield(prefix, the_diff.first, the_diff.at(1))
+      elsif the_diff.is_a?(Hash)
+        the_diff.each do |key, diff|
+          if diff.is_a?(Array)
+            yield([prefix, key], diff.first, diff.at(1))
+          else
+            each_diff(diff, merge_prefixes(prefix, key), &block)
+          end
+        end
+      end
+    end
   
     def diff_to_message_lines(the_diff, prefix = nil)
       if the_diff.is_a?(Array)
