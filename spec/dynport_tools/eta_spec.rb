@@ -103,6 +103,14 @@ describe "DynportTools::ETA" do
     DynportTools::ETA.new(:current => 10, :total => 100, :started => time - 1).to_s.should == "10.00%, 10.00/second, ETA: 2011-02-03T04:50:09+01:00"
   end
   
+  describe "#seconds_to_human" do
+    { 1 => "00:00:01", 61 => "00:01:01", 3661 => "01:01:01" }.each do |from, to|
+      it "retrurns #{to} for #{from}" do
+        DynportTools::ETA.new.seconds_to_time(from).should == to
+      end
+    end
+  end
+  
   describe "#from_time_string" do
     it "sets the correct values" do
       eta = DynportTools::ETA.from_time_string("00:01:10", :total => 100)

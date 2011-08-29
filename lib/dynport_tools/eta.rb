@@ -37,6 +37,13 @@ class DynportTools::ETA
     current / running_for
   end
   
+  def seconds_to_time(time)
+    hours = time / 3600.0
+    minutes = time / 60.0
+    seconds = time
+    "%02d:%02d:%02d" % [hours.floor, (minutes.floor % 3600) % 60, seconds.floor % 60]
+  end
+  
   def to_s
     "%.2f%%, %.2f/second, ETA: %s" % [percs * 100, per_second, eta.iso8601]
   end
