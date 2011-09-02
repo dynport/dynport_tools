@@ -85,15 +85,21 @@ module DynportTools
     def all_array_indexes(a, b)
       0.upto([a.length, b.length].max - 1).to_a
     end
+    
+    def hash_value_from_key(hash, key, symbolize = false)
+      if !symbolize || hash.has_key?(key)
+        hash[key]
+      elsif key.is_a?(Symbol)
+        hash[key.to_s]
+      else
+        hash[key.to_sym]
+      end
+    end
   
     def diff_hash_values(a, b, keys)
       ret = keys.uniq.inject({}) do |hash, key|
-        value_a = a[key]
-        value_b = b[key]
-        if symbolize_keys
-          value_a ||= a[key.is_a?(Symbol) ? key.to_s : key.to_sym]
-          value_b ||= b[key.is_a?(Symbol) ? key.to_s : key.to_sym]
-        end
+        value_a = hash_value_from_key(a, key, symbolize_keys)
+        value_b = hash_value_from_key(b, key, symbolize_keys)
         if diff = diff(value_a, value_b)
           hash[key] = diff
         end

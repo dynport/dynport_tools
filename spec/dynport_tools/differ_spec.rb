@@ -43,6 +43,11 @@ describe DynportTools::Differ do
       differ.diff(hash, hash).should be_nil
     end
     
+    it "works with nil and false values when using symbolize_keys" do
+      differ.symbolize_keys = true
+      differ.diff({"test" => false}, { :test => false}).should be_nil
+    end
+    
     it "returns true when symbolize_keys is set to true and comparing hashes with symbols and strings" do
       differ.symbolize_keys = true
       differ.diff({ :a => 1 }, { "a" => 1 }).should be_nil
