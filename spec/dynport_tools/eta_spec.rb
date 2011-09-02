@@ -37,6 +37,8 @@ describe "DynportTools::ETA" do
       "00:15:26" => 926,
       "00:00:26" => 26,
       "1:00:26" => 3626,
+      "10.0" => 10,
+      "9000.0" => 9000
     }.each do |from, to|
       it "returns #{to} for #{from}" do
         DynportTools::ETA.parse_time_string(from).should == to
