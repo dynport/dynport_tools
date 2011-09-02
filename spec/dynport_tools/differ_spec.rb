@@ -35,6 +35,12 @@ describe DynportTools::Differ do
       b = %(-e production 'something)
       uncolor(differ.diff_strings(a, b)).should == %(-e production<_slave|> <"|'>something)
     end
+    
+    it "diffs an edge case correctly" do
+      a = "#!/bin/sh\nssh s7 \"cd /opt/simfy/app/simfy_production/current && ./script/runner -e production \\\"Importer.import_catalog('kontor')\\\"\""
+      b = "cd /opt/simfy/app/simfy_production/current && ./script/runner -e production \"Importer.import_catalog('kontor')\""
+      pending "fix me"
+    end
   end
   
   describe "diffing two hashes" do
