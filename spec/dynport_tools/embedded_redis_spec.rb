@@ -13,6 +13,7 @@ describe DynportTools::EmbeddedRedis do
   
   after(:each) do
     DynportTools::EmbeddedRedis.instance.instance_variable_set("@connection", nil)
+    DynportTools::EmbeddedRedis.instance.custom_config = nil
   end
   
   describe "#kill" do
