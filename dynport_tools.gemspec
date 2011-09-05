@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.15"
+  s.version = "0.2.16"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
     "spec/dynport_tools/ascii_table_spec.rb",
     "spec/dynport_tools/deep_merger_spec.rb",
     "spec/dynport_tools/differ_spec.rb",
+    "spec/dynport_tools/embedded_redis_spec.rb",
     "spec/dynport_tools/eta_spec.rb",
     "spec/dynport_tools/have_attributes_spec.rb",
     "spec/dynport_tools/jenkins_spec.rb",
