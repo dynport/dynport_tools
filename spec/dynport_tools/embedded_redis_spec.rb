@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe EmbeddedRedis do
-  let(:er) { EmbeddedRedis.instance }
+describe DynportTools::EmbeddedRedis do
+  let(:er) { DynportTools::EmbeddedRedis.instance }
   
   before(:each) do
     er.logger = Logger.new("/dev/null")
@@ -12,7 +12,7 @@ describe EmbeddedRedis do
   end
   
   after(:each) do
-    EmbeddedRedis.instance.instance_variable_set("@connection", nil)
+    DynportTools::EmbeddedRedis.instance.instance_variable_set("@connection", nil)
   end
   
   describe "#pid" do

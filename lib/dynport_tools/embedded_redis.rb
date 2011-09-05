@@ -3,7 +3,7 @@ require "singleton"
 require "logger"
 require "fileutils"
 
-class EmbeddedRedis
+class DynportTools::EmbeddedRedis
   include Singleton
   
   attr_accessor :started, :base_path, :killed

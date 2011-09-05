@@ -21,7 +21,7 @@ RSpec.configure do |config|
   end
 end
 
-EmbeddedRedis.instance.logger = Logger.new("/dev/null")
+DynportTools::EmbeddedRedis.instance.logger = Logger.new("/dev/null")
 
 def root
   Pathname.new(File.expand_path("../../", __FILE__))
