@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.14"
+  s.version = "0.2.15"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-09-02}
+  s.date = %q{2011-09-05}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
   s.executables = ["xmldiff", "redis_dumper"]
@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
     "lib/dynport_tools/ascii_table.rb",
     "lib/dynport_tools/deep_merger.rb",
     "lib/dynport_tools/differ.rb",
+    "lib/dynport_tools/embedded_redis.rb",
     "lib/dynport_tools/eta.rb",
     "lib/dynport_tools/have_attributes.rb",
     "lib/dynport_tools/jenkins.rb",
