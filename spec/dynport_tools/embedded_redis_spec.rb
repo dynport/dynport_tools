@@ -15,6 +15,48 @@ describe DynportTools::EmbeddedRedis do
     DynportTools::EmbeddedRedis.instance.instance_variable_set("@connection", nil)
   end
   
+  describe "#kill" do
+    before(:each) do
+      er.unstub(:kill)
+      er.stub!(:killed?).and_return false
+      er.stub!(:pid).and_return "123"
+      FileUtils.stub!(:rm_f)
+    end
+    
+    it "kills the proces" do
+      er.should_receive(:system).with("kill 123")
+      er.kill
+    end
+    
+    it "removes the socket file" do
+      er.should_receive(:socket_path).and_return("/path/to/socket.tst")
+      FileUtils.should_receive(:rm_f).with("/path/to/socket.tst")
+      er.kill
+    end
+    
+    it "removes the file path" do
+      er.stub!(:base_path).and_return("/base/path")
+      er.stub!(:dbfilename).and_return("some_name")
+      FileUtils.should_receive(:rm_f).with("/base/path/some_name")
+      er.kill
+    end
+    
+    it "sets killed to true" do
+      er.kill
+      er.killed.should == true
+    end
+    
+    it "does not call system when killed" do
+      er.stub(:killed?).and_return true
+      er.should_not_receive(:system)
+    end
+    
+    it "does not call system when pid is nil" do
+      er.stub(:pid?).and_return nil
+      er.should_not_receive(:system)
+    end
+  end
+  
   describe "#pid" do
     it "returns nil when file not found" do
       pid_path = root.join("tmp/some_weird_pid_path.pid")
@@ -75,16 +117,28 @@ describe DynportTools::EmbeddedRedis do
     end
   end
   
-  describe "do_start" do
+  describe "#config" do
+    it "returns the default config" do
+      er.stub!(:default_config).and_return(:a => 1, :b => 2)
+      er.config.should == "a 1\nb 2"
+    end
+    
+    it "merges the custom_config when defined" do
+      er.stub!(:default_config).and_return(:a => 1, :b => 2)
+      er.custom_config = { :a => 3 }
+      er.config.should == "a 3\nb 2"
+    end
+  end
+  
+  describe "#do_start" do
     it "sets started to true" do
       er.do_start!
       er.started.should be_true
     end
     
     it "creates dir of pid and socket paths" do
-      er.stub(:base_path).and_return "/custom_base"
-      FileUtils.should_receive(:mkdir_p).with("/custom_base/pids")
-      FileUtils.should_receive(:mkdir_p).with("/custom_base/sockets")
+      er.stub(:base_path).and_return "/custom_base/test"
+      FileUtils.should_receive(:mkdir_p).with("/custom_base/test")
       er.do_start!
     end
     

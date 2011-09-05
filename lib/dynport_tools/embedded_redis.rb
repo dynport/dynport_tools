@@ -6,20 +6,28 @@ require "fileutils"
 class DynportTools::EmbeddedRedis
   include Singleton
   
-  attr_accessor :started, :base_path, :killed
+  attr_accessor :started, :base_path, :killed, :custom_config
   attr_writer :logger
   
   def initialize(options = {})
-    self.base_path = options[:base_path] || "/tmp"
+    self.base_path = options[:base_path] || "/tmp/embedded_redis"
     self.logger = options[:logger] || Logger.new($stderr)
   end
   
   def pid_path
-    "#{base_path}/pids/redis.#{Process.pid}.pid"
+    "#{base_path}/redis.#{Process.pid}.pid"
   end
   
   def socket_path
-    "#{base_path}/sockets/redis.#{Process.pid}.socket"
+    "#{base_path}/redis.#{Process.pid}.socket"
+  end
+  
+  def dbfilename
+    "redis.#{Process.pid}.rdb"
+  end
+  
+  def dbfile_path
+    "#{base_path}/#{dbfilename}"
   end
   
   def pid
@@ -43,7 +51,7 @@ class DynportTools::EmbeddedRedis
   end
   
   def do_start!
-    [socket_path, pid_path].each { |path| FileUtils.mkdir_p(File.dirname(path)) }
+    FileUtils.mkdir_p(base_path)
     system(%(echo "#{config}" | redis-server -))
     sleep 0.1
     self.started = true
@@ -82,17 +90,19 @@ class DynportTools::EmbeddedRedis
       log "killing #{pid}"
       system(%(kill #{pid})) 
       FileUtils.rm_f(socket_path)
+      FileUtils.rm_f(dbfile_path)
       self.killed = true
     end
   end
   
+  def default_config
+    { 
+      :daemonize => "yes", :pidfile => pid_path, :port => 0, :unixsocket => socket_path, :dir => base_path, 
+      :dbfilename  => dbfilename
+    }
+  end
+  
   def config
-    [
-      "daemonize yes",
-      "pidfile #{pid_path}",
-      "port 0",
-      "unixsocket #{socket_path}"
-      
-    ].join("\n")
+    default_config.merge(custom_config || {}).map { |key, value| ["#{key} #{value}"] }.join("\n")
   end
 end
