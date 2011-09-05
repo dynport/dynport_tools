@@ -1,11 +1,12 @@
 require "redis"
 require "singleton"
 require "logger"
+require "fileutils"
 
 class EmbeddedRedis
   include Singleton
   
-  attr_accessor :started, :base_path
+  attr_accessor :started, :base_path, :killed
   attr_writer :logger
   
   def initialize(options = {})
@@ -22,26 +23,33 @@ class EmbeddedRedis
   end
   
   def pid
-    File.read(pid_path).strip.presence if File.exists?(pid_path)
+    if File.exists?(pid_path)
+      pid = File.read(pid_path).strip
+      pid.length > 0 ? pid : nil
+    end
   end
   
   def running?
-    !!(pid && `ps -p #{pid} | tail -n +2`.present?)
+    !!(pid && IO.popen("ps -p #{pid} | grep redis-server").count > 0)
   end
   
   def start
     if !running?
-      [socket_path, pid_path].each { |path| FileUtils.mkdir_p(File.dirname(path)) }
-      system(%(echo "#{config}" | redis-server -))
-      sleep 0.1
-      self.started = true
-      log "started redis with pid #{pid}"
-      at_exit do
-        kill
-      end
-      connection
+      do_start!
     else
       log "already running with pid #{pid}"
+    end
+    connection
+  end
+  
+  def do_start!
+    [socket_path, pid_path].each { |path| FileUtils.mkdir_p(File.dirname(path)) }
+    system(%(echo "#{config}" | redis-server -))
+    sleep 0.1
+    self.started = true
+    log "started redis with pid #{pid}"
+    at_exit do
+      kill
     end
   end
   
@@ -50,7 +58,9 @@ class EmbeddedRedis
   end
   
   def connection
-    start if !started?
+    if !started?
+      start 
+    end
     @connection ||= Redis.new(:path => socket_path)
   end
   
@@ -62,11 +72,17 @@ class EmbeddedRedis
     @logger ||= Logger.new($stdout)
   end
   
+  def killed?
+    !!killed
+  end
+  
   def kill
     log "killing redis"
-    if pid
+    if !killed? && pid
+      log "killing #{pid}"
       system(%(kill #{pid})) 
       FileUtils.rm_f(socket_path)
+      self.killed = true
     end
   end
   

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe DynportTools::RedisQ do
   let(:key) { "test/redis_queue" }
-  let(:redis) { Redis.new(:path => root.join("tmp/redis.socket")) }
+  let(:redis) { EmbeddedRedis.instance.connection }
   let(:queue) do 
     q = DynportTools::RedisQ.new(key)
     q.redis = redis
