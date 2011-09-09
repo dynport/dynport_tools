@@ -25,7 +25,10 @@ class Jenkins
     
     MULTIPLE = [:notify, :cron_patterns, :locks, :commands]
     
-    [:node, :disabled, :days_to_keep, :num_to_keep, :notify, :cron_patterns, :locks, :commands, :ordered].each do |method|
+    [
+      :node, :disabled, :days_to_keep, :num_to_keep, :notify, :cron_patterns, :locks, :commands, :ordered, :rails_root,
+      :rails_env
+    ].each do |method|
       attr_writer method
       
       define_method(method) do |*values, &block|
@@ -40,6 +43,41 @@ class Jenkins
     
     def disabled!(&block)
       disabled(true, &block)
+    end
+    
+    def use_rails3!
+      @rails3 = true
+    end
+    
+    def use_bundle_exec!
+      @bundle_exec = true
+    end
+    
+    def rails_command(cmd, options = {})
+      rails_command_or_script(%("#{cmd.gsub('"', '\\"')}"), options)
+    end
+    
+    def rails_script(*args)
+      rails_command_or_script(*args)
+    end
+    
+    def rake_task(task, options = {})
+      options[:env] = (options[:env] || {}).merge("RAILS_ENV" => options[:rails_env]) if options[:rails_env]
+      command "cd #{rails_root} && " + command_with_env("rake #{task}", options[:env])
+    end
+    
+    def rails_command_or_script(cmd_or_script, options = {})
+      raise "rails_root must be set" if rails_root.nil?
+      command %(cd #{rails_root} && #{command_with_env(runner_command(options[:rails_env]), options[:env])} #{cmd_or_script})
+    end
+    
+    def runner_command(env = nil)
+      env ||= rails_env
+      [@rails3 ? "rails runner" : "./script/runner", env ? "-e #{env}" : nil].compact.join(" ")
+    end
+    
+    def command_with_env(cmd, env = {})
+      ((env || {}).sort.map { |key, value| "#{key}=#{value}" } + [@bundle_exec ? "bundle exec" : nil, cmd].compact).join(" ")
     end
     
     def with(options, &block)

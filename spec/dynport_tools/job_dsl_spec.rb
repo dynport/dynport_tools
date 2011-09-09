@@ -17,9 +17,123 @@ describe Jenkins::JobDSL do
     end
   end
   
+  
+  describe "#runner_command" do
+    it "returns ./script/runner when no env given" do
+      job.runner_command.should == "./script/runner"
+    end
+    
+    it "returns rails runner when rails3 is set" do
+      job.use_rails3!
+      job.runner_command.should == "rails runner"
+    end
+    
+    it "adds the rails env when given" do
+      job.runner_command("staging").should == "./script/runner -e staging"
+    end
+    
+    it "adds the default rails_env" do
+      job.rails_env = "staging"
+      job.runner_command.should == "./script/runner -e staging"
+    end
+    
+    it "uses given rails env when both given" do
+      job.rails_env = "staging"
+      job.runner_command("staging2").should == "./script/runner -e staging2"
+    end
+  end
+  
+  describe "#rails_script" do
+    it "calls rails_command_or_script with script" do
+      job.should_receive(:rails_command_or_script).with("./jobs/do_something.rb", :rails_env => "staging")
+      job.rails_script("./jobs/do_something.rb", :rails_env => "staging")
+    end
+  end
+  
+  describe "#rake_task" do
+    before(:each) do
+      job.rails_root "/rails/root"
+    end
+    
+    it "sets the correct rails command" do
+      job.rake_task "db:check"
+      job.commands.should == ["cd /rails/root && rake db:check"]
+    end
+    
+    it "hands in env variables" do
+      job.should_receive(:command_with_env).with("rake db:check", { "A" => "true" }).and_return "some command"
+      job.rake_task "db:check", :env => { "A" => "true"}
+      job.commands.should == ["cd /rails/root && some command"]
+    end
+    
+    it "correctly merges the rails env when given" do
+      job.should_receive(:command_with_env).with("rake db:check", { "A" => "true", "RAILS_ENV" => "staging" }).and_return "some other command"
+      job.rake_task "db:check", :env => { "A" => "true"}, :rails_env => "staging"
+      job.commands.should == ["cd /rails/root && some other command"]
+    end
+  end
+  
+  describe "#rails_command" do
+    it "calls rails_command_or_script with script" do
+      job.should_receive(:rails_command_or_script).with(%("puts 1"), :rails_env => "staging")
+      job.rails_command("puts 1", :rails_env => "staging")
+    end
+    
+    it "correctly escapes the command" do
+      job.should_receive(:rails_command_or_script).with(%("puts \\\"hello\\\""), :rails_env => "staging")
+      job.rails_command(%(puts "hello"), :rails_env => "staging")
+    end
+  end
+  
+  describe "#command_with_env" do
+    it "puts all env variables in front of command" do
+      job.command_with_env("some command", "A" => "true").should == "A=true some command"
+    end
+    
+    it "returns the command without env when env is nil" do
+      job.command_with_env("some command").should == "some command"
+    end
+    
+    it "adds bundle exec between env and command" do
+      job.use_bundle_exec!
+      job.command_with_env("some command", "A" => "true").should == "A=true bundle exec some command"
+    end
+  end
+  
+  describe "#rails_command_or_script" do
+    before(:each) do
+      job.rails_root = "/path/to/rails"
+      job.stub!(:runner_command).and_return "./script/runner"
+    end
+    
+    it "calls command with correct args" do
+      job.rails_command_or_script "./some/script.rb"
+      job.commands.should == [%(cd /path/to/rails && ./script/runner ./some/script.rb)]
+    end
+    
+    it "calls runner_command with correct env" do
+      job.should_receive(:runner_command).with("staging")
+      job.rails_command_or_script "puts 1", :rails_env => "staging"
+      job.commands
+    end
+    
+    it "can set various env flags" do
+      job.rails_command_or_script "./script.rb", :env => { "A" => "a", "B" => "b"}
+      job.commands.should == [%(cd /path/to/rails && A=a B=b ./script/runner ./script.rb)]
+    end
+    
+    it "raises an error when rails_root is nil" do
+      job.rails_root = nil
+      lambda {
+        job.rails_command_or_script "some"
+      }.should raise_error("rails_root must be set")
+    end
+  end
+  
   describe "setters and getters" do
     { 
-      :node => "Some Node", :disabled => true, :days_to_keep => 10, :num_to_keep => 1
+      :node => "Some Node", :disabled => true, :days_to_keep => 10, :num_to_keep => 1, :ordered => "A", 
+      :rails_root => "/some/path"
     }.each do |key, value|
       it "sets #{key} to #{value}" do
         job.send(key, value)
@@ -115,8 +229,6 @@ describe Jenkins::JobDSL do
   end
   
   describe "#job" do
-    let(:job) { Jenkins::JobDSL.new }
-    
     it "adds a new job to the children" do
       job.job "Some Name"
       job.jobs.count.should == 1
