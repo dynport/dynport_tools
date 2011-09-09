@@ -130,7 +130,7 @@ describe Jenkins::JobDSL do
     end
     
     it "adds a prefix to the name when current_prefix is set" do
-      job.current_prefix = "A"
+      job.current_scope = { :ordered => "A" }
       job.job "Some Name"
       job.jobs.first.name.should == "A001 Some Name"
     end
@@ -153,12 +153,18 @@ describe Jenkins::JobDSL do
           job "Backup Task"
         end
         
-        with_options :locks => %w(Lock1 Lock2), :node => "Other Node" do
+        with :locks => %w(Lock1 Lock2), :node => "Other Node" do
           job "Other Job"
         end
         
         ordered "A" do
-          job "First"
+          job "First" do
+            with :prefix => "B" do
+              job "Third"
+              job "Fourth"
+            end
+          end
+          
           job "Second"
         end
       end
@@ -177,6 +183,7 @@ describe Jenkins::JobDSL do
       jobs.at(3).name.should == "Other Job"
       jobs.at(4).name.should == "A001 First"
       jobs.at(5).name.should == "A002 Second"
+      jobs.at(4).jobs.map { |j| j.name }.should == ["B001 Third", "B002 Fourth"]
     end
   end
 end

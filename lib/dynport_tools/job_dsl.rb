@@ -25,7 +25,7 @@ class Jenkins
     
     MULTIPLE = [:notify, :cron_patterns, :locks, :commands]
     
-    [:node, :disabled, :days_to_keep, :num_to_keep, :notify, :cron_patterns, :locks, :commands].each do |method|
+    [:node, :disabled, :days_to_keep, :num_to_keep, :notify, :cron_patterns, :locks, :commands, :ordered].each do |method|
       attr_writer method
       
       define_method(method) do |*values, &block|
@@ -36,28 +36,27 @@ class Jenkins
     alias_method :cron_pattern, :cron_patterns
     alias_method :lock, :locks
     alias_method :command, :commands
+    alias_method :prefix, :ordered
     
     def disabled!(&block)
       disabled(true, &block)
     end
     
-    def with_options(options, &block)
+    def with(options, &block)
       old_scope = self.current_scope
       self.current_scope = self.current_scope.merge(options)
       self.instance_eval(&block)
       self.current_scope = old_scope
     end
     
-    def ordered(prefix, &block)
-      self.current_prefix = prefix
-      self.instance_eval(&block)
-      self.current_prefix = nil
+    def current_prefix
+      self.current_scope[:ordered] || self.current_scope[:prefix]
     end
     
     def setter_or_getter(key, *values, &block)
       value = MULTIPLE.include?(key) ? values : values.first
       if block_given?
-        with_options(key => value, &block)
+        with(key => value, &block)
       elsif ![[], nil].include?(value)
         self.send(:"#{key}=", value)
       end
