@@ -135,6 +135,11 @@ describe "DynportTools::Jenkins" do
         end
       end
       
+      it "adds a git entry when git is set" do
+        job.git_repository = "git@github.com:dynport/dynport_tools.git"
+        job.to_xml.should include(%(scm class="hudson.plugins.git.GitSCM">))
+      end
+      
       it "sets the correct email_addresses when present" do
         job.email_addresses = %w(test@test.xx test2@test.xx)
         doc.xpath("/project/publishers/hudson.tasks.Mailer/recipients").map(&:inner_text).should == ["test@test.xx,test2@test.xx"]

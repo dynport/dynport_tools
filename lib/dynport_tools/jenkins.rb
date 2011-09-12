@@ -145,8 +145,10 @@ class DynportTools::Jenkins
   end
   
   class Project
-    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks, :disabled, :description, :email_addresses
-    DEFAUL_SCM = "hudson.scm.NullSCM"
+    attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks, :disabled, :description, 
+      :email_addresses, :git_repository
+    DEFAULT_SCM = "hudson.scm.NullSCM"
+    GIT_SCM = "hudson.plugins.git.GitSCM"
     
     def initialize(name = nil)
       self.name = name
@@ -160,22 +162,77 @@ class DynportTools::Jenkins
       Digest::MD5.hexdigest(to_xml)
     end
     
+    def log_rotate_xml(node)
+      node.logRotator do
+        node.daysToKeep days_to_keep || -1
+        node.numToKeep num_to_keep || -1 
+        node.artifactDaysToKeep -1
+        node.artifactNumToKeep -1
+      end
+    end
+    
+    def git_repository_xml(xml)
+      xml.send("org.spearce.jgit.transport.RemoteConfig") do
+        xml.string "origin"
+        xml.int 5
+        xml.string "fetch"
+        xml.string "+refs/heads/*:refs/remotes/origin/*"
+        xml.string "receivepack"
+        xml.string "git-upload-pack"
+        xml.string "uploadpack"
+        xml.string "git-upload-pack"
+        xml.string "url"
+        xml.string git_repository
+        xml.string "tagopt"
+        xml.string
+      end
+    end
+    
+    def git_options_xml(xml)
+      xml.mergeOptions
+      xml.recursiveSubmodules false
+      xml.doGenerateSubmoduleConfigurations false
+      xml.authorOrCommitter false
+      xml.clean false
+      xml.wipeOutWorkspace false
+      xml.pruneBranches false
+      xml.buildChooser(:class => "hudson.plugins.git.util.DefaultBuildChooser")
+      xml.gitTool "Default"
+      xml.submoduleCfg(:class => "list")
+      xml.relativeTargetDir
+      xml.excludedRegion
+      xml.excludedUsers
+      xml.skipTag false
+    end
+    
+    def git_xml(xml)
+      xml.scm(:class => GIT_SCM) do
+        xml.config_version 1
+        xml.remoteRepositories do
+          git_repository_xml(xml)
+        end
+        xml.branches do
+          xml.send("hudson.plugins.git.BranchSpec") do
+            xml.name "master"
+          end
+        end
+        git_options_xml(xml)
+      end
+    end
+    
     def to_xml
       Nokogiri::XML::Builder.new(:encoding => "UTF-8") do |xml|
         xml.project do
           xml.actions
           xml.description *[description].compact
-          if days_to_keep || num_to_keep
-            xml.logRotator do
-              xml.daysToKeep days_to_keep || -1
-              xml.numToKeep num_to_keep || -1 
-              xml.artifactDaysToKeep -1
-              xml.artifactNumToKeep -1
-            end
-          end
+          log_rotate_xml(xml) if days_to_keep || num_to_keep
           xml.keepDependencies false
           xml.properties
-          xml.scm(:class => DEFAUL_SCM)
+          if git_repository
+            git_xml(xml)
+          else
+            xml.scm(:class => DEFAULT_SCM)
+          end
           if node
             xml.assignedNode node 
             xml.canRoam false
