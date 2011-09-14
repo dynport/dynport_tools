@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dynport_tools}
-  s.version = "0.2.18"
+  s.version = "0.2.19"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-09-05}
+  s.date = %q{2011-09-14}
   s.description = %q{Collection of various tools}
   s.email = %q{tobias.schwab@dynport.de}
   s.executables = ["xmldiff", "redis_dumper"]
@@ -40,6 +40,8 @@ Gem::Specification.new do |s|
     "lib/dynport_tools/eta.rb",
     "lib/dynport_tools/have_attributes.rb",
     "lib/dynport_tools/jenkins.rb",
+    "lib/dynport_tools/job_dsl.rb",
+    "lib/dynport_tools/log_tracer.rb",
     "lib/dynport_tools/redis_dumper.rb",
     "lib/dynport_tools/redis_q.rb",
     "lib/dynport_tools/xml_file.rb",
@@ -50,6 +52,8 @@ Gem::Specification.new do |s|
     "spec/dynport_tools/eta_spec.rb",
     "spec/dynport_tools/have_attributes_spec.rb",
     "spec/dynport_tools/jenkins_spec.rb",
+    "spec/dynport_tools/job_dsl_spec.rb",
+    "spec/dynport_tools/log_tracer_spec.rb",
     "spec/dynport_tools/redis_dumper_spec.rb",
     "spec/dynport_tools/redis_q_spec.rb",
     "spec/dynport_tools/xml_file_spec.rb",
