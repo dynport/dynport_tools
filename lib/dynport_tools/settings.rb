@@ -1,4 +1,4 @@
-class Settings
+class DynportTools::Settings
   SETTINGS_KEY = "settings"
   SETTINGS_UPDATED_AT_KEY = "#{SETTINGS_KEY}/updated_at"
   
