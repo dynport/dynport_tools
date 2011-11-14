@@ -21,4 +21,8 @@ group :development do
   gem "autotest-growl"
   gem "ruby-debug"
   gem "timecop"
+  gem "guard"
+  gem "growl"
+  gem "rb-fsevent"
+  gem "spork"
 end
