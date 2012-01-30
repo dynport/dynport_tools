@@ -1,6 +1,10 @@
 = dynport_tools
 
-Description goes here.
+== LogTracer ==
+  DynportTools::LogTracer.setup(Rails.logger)
+  
+  Rails.logger.register_tracer(/SELECT.*?FROM.*?users/) do |arr|
+  end
 
 == Contributing to dynport_tools
  
