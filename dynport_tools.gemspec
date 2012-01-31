@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{dynport_tools}
-  s.version = "0.2.19"
+  s.name = "dynport_tools"
+  s.version = "0.2.20"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = %q{2011-09-14}
-  s.description = %q{Collection of various tools}
-  s.email = %q{tobias.schwab@dynport.de}
+  s.date = "2012-01-31"
+  s.description = "Collection of various tools"
+  s.email = "tobias.schwab@dynport.de"
   s.executables = ["xmldiff", "redis_dumper"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     ".rspec",
     "Gemfile",
     "Gemfile.lock",
+    "Guardfile",
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
@@ -38,24 +39,30 @@ Gem::Specification.new do |s|
     "lib/dynport_tools/differ.rb",
     "lib/dynport_tools/embedded_redis.rb",
     "lib/dynport_tools/eta.rb",
+    "lib/dynport_tools/features.rb",
     "lib/dynport_tools/have_attributes.rb",
     "lib/dynport_tools/jenkins.rb",
     "lib/dynport_tools/job_dsl.rb",
     "lib/dynport_tools/log_tracer.rb",
     "lib/dynport_tools/redis_dumper.rb",
     "lib/dynport_tools/redis_q.rb",
+    "lib/dynport_tools/services.rb",
+    "lib/dynport_tools/settings.rb",
     "lib/dynport_tools/xml_file.rb",
     "spec/dynport_tools/ascii_table_spec.rb",
     "spec/dynport_tools/deep_merger_spec.rb",
     "spec/dynport_tools/differ_spec.rb",
     "spec/dynport_tools/embedded_redis_spec.rb",
     "spec/dynport_tools/eta_spec.rb",
+    "spec/dynport_tools/features_spec.rb",
     "spec/dynport_tools/have_attributes_spec.rb",
     "spec/dynport_tools/jenkins_spec.rb",
     "spec/dynport_tools/job_dsl_spec.rb",
     "spec/dynport_tools/log_tracer_spec.rb",
     "spec/dynport_tools/redis_dumper_spec.rb",
     "spec/dynport_tools/redis_q_spec.rb",
+    "spec/dynport_tools/services_spec.rb",
+    "spec/dynport_tools/settings_spec.rb",
     "spec/dynport_tools/xml_file_spec.rb",
     "spec/dynport_tools_spec.rb",
     "spec/fixtures/file_a.xml",
@@ -63,11 +70,11 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
     "spec/xml_diff_spec.rb"
   ]
-  s.homepage = %q{http://github.com/tobstarr/dynport_tools}
+  s.homepage = "http://github.com/tobstarr/dynport_tools"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.2}
-  s.summary = %q{Collection of various tools}
+  s.rubygems_version = "1.8.11"
+  s.summary = "Collection of various tools"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
@@ -87,6 +94,10 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<autotest-growl>, [">= 0"])
       s.add_development_dependency(%q<ruby-debug>, [">= 0"])
       s.add_development_dependency(%q<timecop>, [">= 0"])
+      s.add_development_dependency(%q<guard>, [">= 0"])
+      s.add_development_dependency(%q<growl>, [">= 0"])
+      s.add_development_dependency(%q<rb-fsevent>, [">= 0"])
+      s.add_development_dependency(%q<spork>, [">= 0"])
     else
       s.add_dependency(%q<nokogiri>, [">= 0"])
       s.add_dependency(%q<redis>, [">= 0"])
@@ -102,6 +113,10 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<autotest-growl>, [">= 0"])
       s.add_dependency(%q<ruby-debug>, [">= 0"])
       s.add_dependency(%q<timecop>, [">= 0"])
+      s.add_dependency(%q<guard>, [">= 0"])
+      s.add_dependency(%q<growl>, [">= 0"])
+      s.add_dependency(%q<rb-fsevent>, [">= 0"])
+      s.add_dependency(%q<spork>, [">= 0"])
     end
   else
     s.add_dependency(%q<nokogiri>, [">= 0"])
@@ -118,6 +133,10 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<autotest-growl>, [">= 0"])
     s.add_dependency(%q<ruby-debug>, [">= 0"])
     s.add_dependency(%q<timecop>, [">= 0"])
+    s.add_dependency(%q<guard>, [">= 0"])
+    s.add_dependency(%q<growl>, [">= 0"])
+    s.add_dependency(%q<rb-fsevent>, [">= 0"])
+    s.add_dependency(%q<spork>, [">= 0"])
   end
 end
 
