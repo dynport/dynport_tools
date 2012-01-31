@@ -23,6 +23,10 @@ class DynportTools::Services
     "#{solr_data_root}/solr.xml"
   end
   
+  def solr_core_names
+    get(solr_url).to_s.scan(/a href=\"(.*?)\/admin/).flatten
+  end
+  
   def solr_bootstrapped?
     File.exists?(solr_xml_path)
   end
@@ -47,6 +51,10 @@ class DynportTools::Services
     if code = system_call(%(curl -s -I "#{url}" | head -n 1)).to_s.split(" ").at(1)
       code.to_i
     end
+  end
+  
+  def get(url)
+    system_call(%(curl -s "#{url}"))
   end
   
   def post(url)

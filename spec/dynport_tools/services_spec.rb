@@ -1,6 +1,7 @@
 $:<<File.expand_path("../../../", __FILE__)
 require "dynport_tools"
 require "dynport_tools/services"
+require "spec_helper"
 
 describe "Services" do
   let(:services) { DynportTools::Services.new }
@@ -29,6 +30,26 @@ describe "Services" do
     
     after do(:each)
       FileUtils.rm_rf(tmp_path)
+    end
+    
+    describe "#solr_core_names" do
+      before(:each) do
+        services.stub!(:get).and_return("")
+      end
+      
+      it "returns an array" do
+        services.solr_core_names.should be_kind_of(Array)
+      end
+      
+      it "calls the correct url" do
+        services.should_receive(:get).with("http://localhost:8983/solr/").and_return ""
+        services.solr_core_names
+      end
+      
+      it "returns the cirrect core_names" do
+        services.stub!(:get).and_return(File.read(root.join("spec/fixtures/solr_admin.html")))
+        services.solr_core_names.should == %w(test supernova_test some_other)
+      end
     end
     
     describe "#solr_bootstrapped?" do
@@ -273,6 +294,7 @@ describe "Services" do
   
   describe "http methods" do
     let(:url) { "http://www.some.host:1234/path" }
+    
     describe "#head" do
       before(:each) do
         services.unstub(:system_call)
@@ -286,6 +308,17 @@ describe "Services" do
       it "returns nil when result is empty" do
         services.stub(:system_call).and_return("")
         services.head("/some/path").should be_nil
+      end
+    end
+    
+    describe "#get" do
+      before(:each) do
+        services.unstub(:system_call)
+      end
+      
+      it "executes the correct system call" do
+        services.should_receive(:system_call).with(%(curl -s "#{url}")).and_return("response body")
+        services.get(url).should == "response body"
       end
     end
     
