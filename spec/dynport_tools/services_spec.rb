@@ -12,7 +12,80 @@ describe "Services" do
     DynportTools::Services.new.should be_kind_of(DynportTools::Services)
   end
   
+  describe "solr_root" do
+    it "allows setting the solr root" do
+      services.solr_data_root = "/tmp/solr_path"
+      services.solr_data_root.should == "/tmp/solr_path"
+    end
+    
+    it "returns /opt/solr by default" do
+      services.solr_data_root.should == "/opt/solr"
+    end
+  end
+  
   describe "solr" do
+    let(:tmp_path) { "/tmp/solr_#{Time.now.to_f.to_s.gsub(".", "")}" }
+    let(:solr_xml) { "#{tmp_path}/solr.xml"}
+    
+    after do(:each)
+      FileUtils.rm_rf(tmp_path)
+    end
+    
+    describe "#solr_bootstrapped?" do
+      before(:each) do
+        services.solr_data_root = tmp_path
+      end
+      
+      it "returns false by default" do
+        services.should_not be_solr_bootstrapped
+      end
+      
+      it "returns true when solr.xml exists" do
+        FileUtils.mkdir_p(tmp_path)
+        FileUtils.touch(solr_xml)
+        services.should be_solr_bootstrapped
+      end
+    end
+    
+    describe "bootstrap_solr" do
+      before(:each) do
+        services.solr_data_root = tmp_path
+      end
+      
+      it "raises an error when dir not exists" do
+        lambda {
+          services.bootstrap_solr
+        }.should raise_error("please create #{tmp_path} first")
+      end
+      
+      it "creates a new solr.xml when not exists" do
+        FileUtils.mkdir_p(tmp_path)
+        services.bootstrap_solr
+        File.should be_exists(solr_xml)
+      end
+      
+      it "sets the correct content" do
+        FileUtils.mkdir_p(tmp_path)
+        services.bootstrap_solr
+        expected = %(
+          <?xml version="1.0" encoding="UTF-8" ?>
+          <solr sharedLib="lib" persistent="true">
+            <cores adminPath="/admin/cores">
+            </cores>
+          </solr>
+        ).gsub(/^\s+/, "")
+        File.read(solr_xml).should == expected
+      end
+      
+      it "raises an error when solr.xml already exists" do
+        FileUtils.mkdir_p(tmp_path)
+        FileUtils.touch(solr_xml)
+        lambda {
+          services.bootstrap_solr
+        }.should raise_error("#{solr_xml} already exists")
+      end
+    end
+    
     describe "#solr_running?" do
       it "calls head with the correct url" do
         services.should_receive(:head).with("http://localhost:8983/solr/").and_return 200
@@ -64,14 +137,6 @@ describe "Services" do
         lambda {
           services.create_solr_core("new_core_name")
         }.should raise_error("please set solr_instance_path first!")
-      end
-      
-      it "raises an error when solr_data_root is not set" do
-        services.should_not_receive(:post)
-        services.solr_data_root = nil
-        lambda {
-          services.create_solr_core("new_core_name")
-        }.should raise_error("please set solr_data_root first!")
       end
     end
     
@@ -201,6 +266,7 @@ describe "Services" do
   
   it "forwards the system call" do
     services.unstub(:system_call)
+    services.stub(:puts)
     Kernel.should_receive(:`).with("ls -l").and_return("the result")
     services.system_call("ls -l").should == "the result"
   end

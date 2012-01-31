@@ -1,7 +1,47 @@
 class DynportTools::Services
   DEFAULTS = {
-    :solr_url => "http://localhost:8983/solr/"
+    :solr_url => "http://localhost:8983/solr/",
+    :solr_data_root => "/opt/solr",
+    :solr_xml => %(
+      <?xml version="1.0" encoding="UTF-8" ?>
+      <solr sharedLib="lib" persistent="true">
+        <cores adminPath="/admin/cores">
+        </cores>
+      </solr>
+    ).gsub(/^\s+/, "")
   }
+  
+  # solr
+  attr_writer :solr_url
+  attr_accessor :solr_instance_path, :solr_data_root
+  
+  def solr_data_root
+    @solr_data_root || DEFAULTS[:solr_data_root]
+  end
+  
+  def solr_xml_path
+    "#{solr_data_root}/solr.xml"
+  end
+  
+  def solr_bootstrapped?
+    File.exists?(solr_xml_path)
+  end
+  
+  def bootstrap_solr
+    raise "#{solr_xml_path} already exists" if solr_bootstrapped?
+    write_solr_xml_when_possible
+  end
+  
+  def write_solr_xml_when_possible
+    raise "please create #{solr_data_root} first" if !File.directory?(solr_data_root)
+    write_solr_xml
+  end
+  
+  def write_solr_xml
+    File.open(solr_xml_path, "w") do |f|
+      f.puts(DEFAULTS[:solr_xml])
+    end
+  end
   
   def head(url)
     if code = system_call(%(curl -s -I "#{url}" | head -n 1)).to_s.split(" ").at(1)
@@ -12,10 +52,6 @@ class DynportTools::Services
   def post(url)
     system_call(%(curl -s -I -XPOST "#{url}"))
   end
-  
-  # solr
-  attr_writer :solr_url
-  attr_accessor :solr_instance_path, :solr_data_root
   
   def solr_url
     @solr_url || DEFAULTS[:solr_url]
