@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "dynport_tools"
-  s.version = "0.2.20"
+  s.version = "0.2.21"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
@@ -67,6 +67,7 @@ Gem::Specification.new do |s|
     "spec/dynport_tools_spec.rb",
     "spec/fixtures/file_a.xml",
     "spec/fixtures/jenkins_job.xml",
+    "spec/fixtures/solr_admin.html",
     "spec/spec_helper.rb",
     "spec/xml_diff_spec.rb"
   ]
