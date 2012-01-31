@@ -31,6 +31,12 @@ class DynportTools::Services
     File.exists?(solr_xml_path)
   end
   
+  def start_solr
+    raise "solr already running" if solr_running?
+    raise "solr must be bootstrapped first" if !solr_bootstrapped?
+    exec "solr #{solr_data_root} > #{solr_data_root}/solr.log 2>&1 &"
+  end
+  
   def bootstrap_solr
     raise "#{solr_xml_path} already exists" if solr_bootstrapped?
     write_solr_xml_when_possible
@@ -82,6 +88,17 @@ class DynportTools::Services
   def unload_solr_core(core_name)
     post("#{solr_url}admin/cores?action=UNLOAD&core=#{core_name}")
   end
+  
+  def reload_all_solr_cores
+    solr_core_names.each do |core_name|
+      reload_solr_core(core_name)
+    end
+  end
+  
+  def reload_solr_core(core_name)
+    post("#{solr_url}admin/cores?action=RELOAD&core=#{core_name}")
+  end
+  
   
   # redis
   attr_writer :redis_path_prefix, :redis_config_path, :redis_config_hash

@@ -7,6 +7,7 @@ describe "Services" do
   let(:services) { DynportTools::Services.new }
   before(:each) do
     services.stub(:system_call).and_raise("stub me")
+    services.stub!(:exec).and_raise("stub me")
   end
   
   it "can be initialized" do
@@ -32,6 +33,39 @@ describe "Services" do
       FileUtils.rm_rf(tmp_path)
     end
     
+    before(:each) do
+      services.solr_data_root = tmp_path
+    end
+    
+    describe "#start_solr" do
+      before(:each) do
+        FileUtils.mkdir_p(tmp_path)
+      end
+      
+      it "raises an error when running" do
+        services.stub!(:solr_running?).and_return true
+        lambda {
+          services.start_solr
+        }.should raise_error("solr already running")
+      end
+      
+      it "raises an error when not bootstrapped" do
+        services.stub!(:solr_running?).and_return false
+        services.stub!(:solr_bootstrapped?).and_return false
+        lambda {
+          services.start_solr
+        }.should raise_error("solr must be bootstrapped first")
+      end
+      
+      it "executes the correct system call" do
+        services.stub!(:solr_running?).and_return false
+        services.stub!(:solr_bootstrapped?).and_return true
+        services.unstub(:exec)
+        services.should_receive(:exec).with("solr #{tmp_path} > #{tmp_path}/solr.log 2>&1 &")
+        services.start_solr
+      end
+    end
+    
     describe "#solr_core_names" do
       before(:each) do
         services.stub!(:get).and_return("")
@@ -53,10 +87,6 @@ describe "Services" do
     end
     
     describe "#solr_bootstrapped?" do
-      before(:each) do
-        services.solr_data_root = tmp_path
-      end
-      
       it "returns false by default" do
         services.should_not be_solr_bootstrapped
       end
@@ -69,10 +99,6 @@ describe "Services" do
     end
     
     describe "bootstrap_solr" do
-      before(:each) do
-        services.solr_data_root = tmp_path
-      end
-      
       it "raises an error when dir not exists" do
         lambda {
           services.bootstrap_solr
@@ -169,6 +195,26 @@ describe "Services" do
         services.unload_solr_core("core_to_unload")
       end
     end
+    
+    describe "#reload_solr_core" do
+      it "calls the correct post method (haha, post)" do
+        services.solr_url = "http://some.host:8080/solr/"
+        url = "http://some.host:8080/solr/admin/cores?action=RELOAD&core=core_to_unload"
+        services.should_receive(:post).with(url)
+        services.reload_solr_core("core_to_unload")
+      end
+    end
+    
+    describe "#reload_all_solr_cores" do
+      it "calls reload_solr_core with all core_names" do
+        services.stub!(:solr_core_names).and_return(%w(b d f))
+        services.should_receive(:reload_solr_core).with("b")
+        services.should_receive(:reload_solr_core).with("d")
+        services.should_receive(:reload_solr_core).with("f")
+        services.reload_all_solr_cores
+      end
+    end
+    
   end
   
   describe "redis" do
