@@ -4,8 +4,9 @@ describe DynportTools::EmbeddedRedis do
   let(:er) { DynportTools::EmbeddedRedis.instance }
   
   before(:each) do
+    IO.stub(:popen)
     er.logger = Logger.new("/dev/null")
-    er.stub(:system)
+    DynportTools::EmbeddedRedis.stub!(:system)
     er.stub!(:sleep)
     er.stub!(:kill)
     FileUtils.stub!(:mkdir_p)
@@ -25,7 +26,7 @@ describe DynportTools::EmbeddedRedis do
     end
     
     it "kills the proces" do
-      er.should_receive(:system).with("kill 123")
+      DynportTools::EmbeddedRedis.should_receive(:system).with("kill 123")
       er.kill
     end
     
@@ -49,12 +50,12 @@ describe DynportTools::EmbeddedRedis do
     
     it "does not call system when killed" do
       er.stub(:killed?).and_return true
-      er.should_not_receive(:system)
+      DynportTools::EmbeddedRedis.should_not_receive(:system)
     end
     
     it "does not call system when pid is nil" do
       er.stub(:pid?).and_return nil
-      er.should_not_receive(:system)
+      DynportTools::EmbeddedRedis.should_not_receive(:system)
     end
   end
   
@@ -145,7 +146,7 @@ describe DynportTools::EmbeddedRedis do
     
     it "starts redis" do
       er.stub(:config).and_return "some config"
-      er.should_receive(:system).with(/echo "some config" \| redis-server -/)
+      DynportTools::EmbeddedRedis.should_receive(:system).with(/echo "some config" \| redis-server -/)
       er.do_start!
     end
     

@@ -1,8 +1,43 @@
 require 'spec_helper'
+require "fileutils"
 
 describe DynportTools::RedisQ do
+  let(:redis_dir) { File.expand_path("../../../tmp/redis", __FILE__) }
+  let(:redis_config_path) { "#{redis_dir}/redis.config" }
+  let(:redis_socket_path) { "#{redis_dir}/redis.socket" }
+  let(:redis_pid_path) { "#{redis_dir}/redis.pid" }
+  
+  def init_redis!
+    FileUtils.mkdir_p(redis_dir)
+    File.open(redis_config_path, "w") do |f|
+      f.puts("port 0")
+      f.puts("daemonize yes")
+      f.puts("unixsocket #{redis_socket_path}")
+      f.puts("pidfile #{redis_pid_path}")
+    end
+    begin
+      Redis.current = Redis.new(:path => redis_socket_path)
+      Redis.current.info
+    rescue
+      system "redis-server #{redis_config_path}"
+      20.times do
+        begin
+          Redis.current.info
+          break
+        rescue
+          sleep 0.1
+        end
+      end
+    end
+  end
+  
+  before(:each) do
+    init_redis!
+  end
+  
+  let(:redis) { Redis.current }
+  
   let(:key) { "test/redis_queue" }
-  let(:redis) { DynportTools::EmbeddedRedis.instance.connection }
   let(:queue) do 
     q = DynportTools::RedisQ.new(key)
     q.redis = redis

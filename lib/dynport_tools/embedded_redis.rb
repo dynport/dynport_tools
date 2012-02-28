@@ -50,9 +50,13 @@ class DynportTools::EmbeddedRedis
     connection
   end
   
+  def self.system(cmd)
+    Kernel.send(:system, cmd)
+  end
+  
   def do_start!
     FileUtils.mkdir_p(base_path)
-    system(%(echo "#{config}" | redis-server -))
+    self.class.system(%(echo "#{config}" | redis-server -))
     sleep 0.1
     self.started = true
     log "started redis with pid #{pid}"
@@ -88,7 +92,7 @@ class DynportTools::EmbeddedRedis
     log "killing redis"
     if !killed? && pid
       log "killing #{pid}"
-      system(%(kill #{pid})) 
+      self.class.system(%(kill #{pid})) 
       FileUtils.rm_f(socket_path)
       FileUtils.rm_f(dbfile_path)
       self.killed = true
