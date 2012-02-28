@@ -145,7 +145,7 @@ describe "DynportTools::Jenkins" do
     end
   end
   
-  describe "#projects_to_destroy" do
+  describe "#projects_to_delete" do
     it "returns an array" do
       remote_projects = {
         "proj1" => proj1,
@@ -158,7 +158,7 @@ describe "DynportTools::Jenkins" do
         "proj3" => proj3,
       }
       jenkins.stub!(:configured_projects_hash).and_return(configured_projects)
-      jenkins.projects_to_destroy.should == [proj3]
+      jenkins.projects_to_delete.should == [proj3]
     end
   end
   

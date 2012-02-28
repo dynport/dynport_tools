@@ -93,7 +93,7 @@ class DynportTools::Jenkins
     remote_projects.keys.include?(project.name)
   end
   
-  def projects_to_destroy
+  def projects_to_delete
     configured_projects.select { |project| project.destroyed? && exists_remotely?(project) }
   end
   
