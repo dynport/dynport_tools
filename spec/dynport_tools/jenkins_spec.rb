@@ -192,6 +192,30 @@ describe "DynportTools::Jenkins" do
     end
   end
   
+  describe "#not_configured_projects" do
+    before(:each) do
+      jenkins.stub!(:remote_projects).and_return({})
+    end
+    
+    it "rerturns an empty array by default" do
+      jenkins.not_configured_projects.should == []
+    end
+    
+    it "includes all remote projects which do not exists locally" do
+      proj_a = double("project_a", :name => "a")
+      proj_b = double("project_b", :name => "b")
+      jenkins.stub!(:remote_projects).and_return(
+        "a" => proj_a,
+        "b" => proj_b
+      )
+      jenkins.not_configured_projects.sort_by(&:name).should == [proj_a, proj_b]
+      jenkins.stub!(:configured_projects_hash).and_return(
+        "b" => double("locale b", :name => "b")
+      )
+      jenkins.not_configured_projects.sort_by(&:name).should == [proj_a]
+    end
+  end
+  
   describe "#projects_to_update" do
     before(:each) do
       jenkins.stub!(:remote_projects).and_return({})
