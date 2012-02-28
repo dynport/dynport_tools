@@ -113,6 +113,17 @@ describe "DynportTools::Jenkins" do
       it "sets the name" do
         job.name.should == "Some Name"
       end
+      
+      it "allows setting othe destroyed flag" do
+        job.destroyed = true
+        job.destroyed.should == true
+      end
+    end
+    
+    it "returns the correct status for destroyed" do
+      job.should_not be_destroyed
+      job.destroyed = true
+      job.should be_destroyed
     end
     
     describe "#to_xml" do

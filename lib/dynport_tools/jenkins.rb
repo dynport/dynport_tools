@@ -146,7 +146,7 @@ class DynportTools::Jenkins
   
   class Project
     attr_accessor :name, :commands, :crontab_pattern, :days_to_keep, :num_to_keep, :node, :child_projects, :locks, :disabled, :description, 
-      :email_addresses, :git_repository
+      :email_addresses, :git_repository, :destroyed
     DEFAULT_SCM = "hudson.scm.NullSCM"
     GIT_SCM = "hudson.plugins.git.GitSCM"
     
@@ -156,6 +156,10 @@ class DynportTools::Jenkins
       self.child_projects = []
       self.email_addresses = []
       self.locks = []
+    end
+    
+    def destroyed?
+      !!@destroyed
     end
     
     def md5
