@@ -152,12 +152,12 @@ describe "DynportTools::Jenkins" do
         "proj3" => proj3,
       }
       jenkins.stub!(:remote_projects).and_return(remote_projects)
-      projects = {
+      configured_projects = {
         "proj1" => proj1,
         "proj2" => proj2,
         "proj3" => proj3,
       }
-      jenkins.stub!(:configured_projects_hash).and_return(projects)
+      jenkins.stub!(:configured_projects_hash).and_return(configured_projects)
       jenkins.projects_to_destroy.should == [proj3]
     end
   end
