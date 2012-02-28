@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "dynport_tools"
-  s.version = "0.2.21"
+  s.version = "0.2.22"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
-  s.date = "2012-01-31"
+  s.date = "2012-02-28"
   s.description = "Collection of various tools"
   s.email = "tobias.schwab@dynport.de"
-  s.executables = ["xmldiff", "redis_dumper"]
+  s.executables = ["redis_dumper", "xmldiff"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -42,6 +42,8 @@ Gem::Specification.new do |s|
     "lib/dynport_tools/features.rb",
     "lib/dynport_tools/have_attributes.rb",
     "lib/dynport_tools/jenkins.rb",
+    "lib/dynport_tools/jenkins/project.rb",
+    "lib/dynport_tools/jenkins/remote_project.rb",
     "lib/dynport_tools/job_dsl.rb",
     "lib/dynport_tools/log_tracer.rb",
     "lib/dynport_tools/redis_dumper.rb",
@@ -56,6 +58,8 @@ Gem::Specification.new do |s|
     "spec/dynport_tools/eta_spec.rb",
     "spec/dynport_tools/features_spec.rb",
     "spec/dynport_tools/have_attributes_spec.rb",
+    "spec/dynport_tools/jenkins/project_spec.rb",
+    "spec/dynport_tools/jenkins/remote_project_spec.rb",
     "spec/dynport_tools/jenkins_spec.rb",
     "spec/dynport_tools/job_dsl_spec.rb",
     "spec/dynport_tools/log_tracer_spec.rb",
@@ -74,7 +78,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/tobstarr/dynport_tools"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.11"
+  s.rubygems_version = "1.8.17"
   s.summary = "Collection of various tools"
 
   if s.respond_to? :specification_version then
@@ -86,7 +90,8 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<typhoeus>, [">= 0"])
       s.add_runtime_dependency(%q<term-ansicolor>, [">= 0"])
       s.add_runtime_dependency(%q<diff-lcs>, [">= 0"])
-      s.add_development_dependency(%q<rspec>, ["~> 2.3.0"])
+      s.add_development_dependency(%q<rake>, [">= 0"])
+      s.add_development_dependency(%q<rspec>, ["= 2.8.0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
@@ -105,7 +110,8 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<typhoeus>, [">= 0"])
       s.add_dependency(%q<term-ansicolor>, [">= 0"])
       s.add_dependency(%q<diff-lcs>, [">= 0"])
-      s.add_dependency(%q<rspec>, ["~> 2.3.0"])
+      s.add_dependency(%q<rake>, [">= 0"])
+      s.add_dependency(%q<rspec>, ["= 2.8.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
       s.add_dependency(%q<rcov>, [">= 0"])
@@ -125,7 +131,8 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<typhoeus>, [">= 0"])
     s.add_dependency(%q<term-ansicolor>, [">= 0"])
     s.add_dependency(%q<diff-lcs>, [">= 0"])
-    s.add_dependency(%q<rspec>, ["~> 2.3.0"])
+    s.add_dependency(%q<rake>, [">= 0"])
+    s.add_dependency(%q<rspec>, ["= 2.8.0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.4"])
     s.add_dependency(%q<rcov>, [">= 0"])
