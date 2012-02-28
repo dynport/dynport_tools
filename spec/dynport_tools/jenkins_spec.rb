@@ -3,10 +3,20 @@ require 'spec_helper'
 describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
-  let(:proj1) { double("proj1", :destroyed? => false) }
-  let(:proj2) { double("proj2", :destroyed? => true) }
-  let(:proj3) { double("proj3", :destroyed? => true) }
-  let(:proj4) { double("proj4", :destroyed? => false) }
+  let(:proj1) { double("proj1", :name => "proj1", :destroyed? => false) }
+  let(:proj2) { double("proj2", :name => "proj2", :destroyed? => true) }
+  let(:proj3) { double("proj3", :name => "proj3", :destroyed? => true) }
+  let(:proj4) { double("proj4", :name => "proj4", :destroyed? => false) }
+  
+  let(:configured_projects_hash) do
+    {
+      "proj1" => proj1,
+      "proj2" => proj2, # destroyed
+      "proj3" => proj3, # destroyed
+      "proj4" => proj4,
+    }
+  end
+  
   
   before(:each) do
     Typhoeus::Request.stub!(:post).and_return nil
@@ -123,31 +133,15 @@ describe "DynportTools::Jenkins" do
     end
   end
   
-  describe "#configured_projects" do
+  describe "#configured_projects_hash" do
     it "returns an empty array by default" do
-      jenkins.configured_projects.should == {}
+      jenkins.configured_projects_hash.should == {}
     end
     
-    it "allows adding of projects to the configured_projects array" do
-      jenkins.configured_projects[:a] = 1
-      jenkins.configured_projects[:b] = 2
-      jenkins.configured_projects.should == { :a => 1, :b => 2 }
-    end
-  end
-  
-  describe "#configured_and_destroyed_projects" do
-    it "returns a hash" do
-      jenkins.configured_and_destroyed_projects
-    end
-    
-    it "returns the correct hash" do
-      projects = {
-        "proj1" => double("proj1", :destroyed? => false),
-        "proj2" => double("proj2", :destroyed? => true),
-        "proj3" => double("proj3", :destroyed? => true),
-      }
-      jenkins.stub!(:configured_projects).and_return(projects)
-      jenkins.configured_and_destroyed_projects.keys.should == %w(proj2 proj3)
+    it "allows adding of projects to the configured_projects_hash array" do
+      jenkins.configured_projects_hash[:a] = 1
+      jenkins.configured_projects_hash[:b] = 2
+      jenkins.configured_projects_hash.should == { :a => 1, :b => 2 }
     end
   end
   
@@ -163,30 +157,73 @@ describe "DynportTools::Jenkins" do
         "proj2" => proj2,
         "proj3" => proj3,
       }
-      jenkins.stub!(:configured_projects).and_return(projects)
+      jenkins.stub!(:configured_projects_hash).and_return(projects)
       jenkins.projects_to_destroy.should == [proj3]
     end
   end
   
   describe "#projects_to_create" do
-    it "returns the correct array" do
+    before(:each) do
       jenkins.stub!(:remote_projects).and_return({})
-      configured_projects = {
-        "proj1" => proj1,
-        "proj2" => proj2, # destroyed
-        "proj3" => proj3, # destroyed
-        "proj4" => proj4,
-      }
-      jenkins.stub!(:configured_projects).and_return(configured_projects)
-      jenkins.projects_to_create.count.should == 2
-      jenkins.projects_to_create.should include(proj1)
-      jenkins.projects_to_create.should include(proj4)
+      jenkins.stub!(:configured_projects_hash).and_return({})
+    end
+    
+    it "returns an empty hash when both empty" do
+      jenkins.projects_to_create.should {} 
+    end
+    
+    it "returns an empty hash when all configured projects are destroyed" do
+      proj = double("proj", :destroyed? => false, :name => "proj")
+      jenkins.stub!(:configured_projects_hash).and_return("proj" => proj)
+      jenkins.projects_to_create.should == [proj]
+      proj.stub!(:destroyed?).and_return(true)
+      jenkins.projects_to_create.should == []
+    end
+    
+    it "returns the correct array" do
+      jenkins.stub!(:configured_projects_hash).and_return(configured_projects_hash)
+      jenkins.projects_to_create.sort_by(&:name).should == [proj1, proj4]
       remote_projects = {
         "proj1" => proj1,
         "proj3" => proj3,
       }
       jenkins.stub!(:remote_projects).and_return(remote_projects)
       jenkins.projects_to_create.should == [proj4]
+    end
+  end
+  
+  describe "#projects_to_update" do
+    before(:each) do
+      jenkins.stub!(:remote_projects).and_return({})
+    end
+    
+    it "returns an empty array when remote_projects is empty" do
+      jenkins.projects_to_update.should be_empty
+    end
+    
+    it "returns an empty array when configured projects is not empty but remote_projects is empty" do
+      jenkins.stub!(:configured_projects_hash).and_return(configured_projects_hash)
+      jenkins.projects_to_update.sort_by(&:name).should be_empty
+    end
+    
+    it "returns the correct projects when changed" do
+      jenkins.stub!(:remote_projects).and_return(
+        "a" => double("remote_a", :md5 => "a_remote", :destroyed? => false),
+        "b" => double("remote_b", :md5 => "b_remote", :destroyed? => false),
+        "c" => double("remote_c", :md5 => "c_remote", :destroyed? => false)
+      )
+      locale_c = double("local_c", :md5 => "c_remote", :destroyed? => false, :name => "c")
+      jenkins.stub!(:configured_projects_hash).and_return(
+        "a" => double("local_a", :md5 => "a_remote", :destroyed? => false, :name => "a"),
+        "b" => double("local_b", :md5 => "b_remote", :destroyed? => false, :name => "b"),
+        "c" => locale_c
+      )
+      jenkins.projects_to_update.sort_by(&:name).should == []
+      jenkins.configured_projects_hash["c"].stub!(:md5).and_return("c_locale")
+      jenkins.projects_to_update.should == [locale_c]
+      
+      locale_c.stub!(:destroyed?).and_return(true)
+      jenkins.projects_to_update.should == []
     end
   end
 

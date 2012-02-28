@@ -74,31 +74,12 @@ class DynportTools::Jenkins
     cache[:projects_details] = jobs
   end
   
+  def configured_projects_hash
+    cache[:configured_projects_hash] ||= {}
+  end
+  
   def configured_projects
-    cache[:configured_projects] ||= {}
-  end
-  
-  def configured_and_destroyed_projects
-    configured_projects.inject({}) do |hash, (project_name, project)|
-      hash[project_name] = project if project.destroyed?
-      hash
-    end
-  end
-  
-  def projects_to_destroy
-    to_destroy = []
-    configured_and_destroyed_projects.each do |name, project|
-      to_destroy << project if remote_projects.keys.include?(name)
-    end
-    to_destroy
-  end
-  
-  def projects_to_create
-    to_create  = []
-    configured_projects.each do |name, project|
-      to_create << project if !project.destroyed? && !remote_projects.keys.include?(name)
-    end
-    to_create
+    configured_projects_hash.values
   end
   
   def remote_projects
@@ -106,6 +87,22 @@ class DynportTools::Jenkins
       hash[project_hash[:name]] = RemoteProject.from_details_hash(project_hash)
       hash
     end
+  end
+  
+  def exists_remotely?(project)
+    remote_projects.keys.include?(project.name)
+  end
+  
+  def projects_to_destroy
+    configured_projects.select { |project| project.destroyed? && exists_remotely?(project) }
+  end
+  
+  def projects_to_create
+    configured_projects.select { |project| !project.destroyed? && !exists_remotely?(project) }
+  end
+  
+  def projects_to_update
+    configured_projects.select { | project| exists_remotely?(project) && !project.destroyed? && (project.md5 != remote_projects[project.name].md5) }
   end
 end
 
