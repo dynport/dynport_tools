@@ -58,6 +58,7 @@ DEPENDENCIES
   guard
   jeweler (~> 1.6.4)
   nokogiri
+  rake
   rb-fsevent
   rcov
   redis
