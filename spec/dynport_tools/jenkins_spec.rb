@@ -3,16 +3,16 @@ require 'spec_helper'
 describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
-  let(:proj1) { double("proj1", :name => "proj1", :destroyed? => false) }
-  let(:proj2) { double("proj2", :name => "proj2", :destroyed? => true) }
-  let(:proj3) { double("proj3", :name => "proj3", :destroyed? => true) }
-  let(:proj4) { double("proj4", :name => "proj4", :destroyed? => false) }
+  let(:proj1) { double("proj1", :name => "proj1", :deleted? => false) }
+  let(:proj2) { double("proj2", :name => "proj2", :deleted? => true) }
+  let(:proj3) { double("proj3", :name => "proj3", :deleted? => true) }
+  let(:proj4) { double("proj4", :name => "proj4", :deleted? => false) }
   
   let(:configured_projects_hash) do
     {
       "proj1" => proj1,
-      "proj2" => proj2, # destroyed
-      "proj3" => proj3, # destroyed
+      "proj2" => proj2, # deleted
+      "proj3" => proj3, # deleted
       "proj4" => proj4,
     }
   end
@@ -174,11 +174,11 @@ describe "DynportTools::Jenkins" do
       jenkins.projects_to_create.should {} 
     end
     
-    it "returns an empty hash when all configured projects are destroyed" do
-      proj = double("proj", :destroyed? => false, :name => "proj")
+    it "returns an empty hash when all configured projects are deleted" do
+      proj = double("proj", :deleted? => false, :name => "proj")
       jenkins.stub!(:configured_projects_hash).and_return("proj" => proj)
       jenkins.projects_to_create.should == [proj]
-      proj.stub!(:destroyed?).and_return(true)
+      proj.stub!(:deleted?).and_return(true)
       jenkins.projects_to_create.should == []
     end
     
@@ -234,21 +234,21 @@ describe "DynportTools::Jenkins" do
     
     it "returns the correct projects when changed" do
       jenkins.stub!(:remote_projects).and_return(
-        "a" => double("remote_a", :md5 => "a_remote", :destroyed? => false),
-        "b" => double("remote_b", :md5 => "b_remote", :destroyed? => false),
-        "c" => double("remote_c", :md5 => "c_remote", :destroyed? => false)
+        "a" => double("remote_a", :md5 => "a_remote", :deleted? => false),
+        "b" => double("remote_b", :md5 => "b_remote", :deleted? => false),
+        "c" => double("remote_c", :md5 => "c_remote", :deleted? => false)
       )
-      locale_c = double("local_c", :md5 => "c_remote", :destroyed? => false, :name => "c")
+      locale_c = double("local_c", :md5 => "c_remote", :deleted? => false, :name => "c")
       jenkins.stub!(:configured_projects_hash).and_return(
-        "a" => double("local_a", :md5 => "a_remote", :destroyed? => false, :name => "a"),
-        "b" => double("local_b", :md5 => "b_remote", :destroyed? => false, :name => "b"),
+        "a" => double("local_a", :md5 => "a_remote", :deleted? => false, :name => "a"),
+        "b" => double("local_b", :md5 => "b_remote", :deleted? => false, :name => "b"),
         "c" => locale_c
       )
       jenkins.projects_to_update.sort_by(&:name).should == []
       jenkins.configured_projects_hash["c"].stub!(:md5).and_return("c_locale")
       jenkins.projects_to_update.should == [locale_c]
       
-      locale_c.stub!(:destroyed?).and_return(true)
+      locale_c.stub!(:deleted?).and_return(true)
       jenkins.projects_to_update.should == []
     end
   end

@@ -25,16 +25,16 @@ describe "Project" do
       job.name.should == "Some Name"
     end
       
-    it "allows setting othe destroyed flag" do
-      job.destroyed = true
-      job.destroyed.should == true
+    it "allows setting othe deleted flag" do
+      job.delete = true
+      job.delete.should == true
     end
   end
     
-  it "returns the correct status for destroyed" do
-    job.should_not be_destroyed
-    job.destroyed = true
-    job.should be_destroyed
+  it "returns the correct status for deleted" do
+    job.should_not be_deleted
+    job.delete = true
+    job.should be_deleted
   end
     
   describe "#to_xml" do

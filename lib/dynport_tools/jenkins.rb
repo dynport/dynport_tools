@@ -104,15 +104,15 @@ class DynportTools::Jenkins
   end
   
   def projects_to_delete
-    configured_projects.select { |project| project.destroyed? && exists_remotely?(project) }
+    configured_projects.select { |project| project.deleted? && exists_remotely?(project) }
   end
   
   def projects_to_create
-    configured_projects.select { |project| !project.destroyed? && !exists_remotely?(project) }
+    configured_projects.select { |project| !project.deleted? && !exists_remotely?(project) }
   end
   
   def projects_to_update
-    configured_projects.select { | project| exists_remotely?(project) && !project.destroyed? && (project.md5 != remote_projects[project.name].md5) }
+    configured_projects.select { | project| exists_remotely?(project) && !project.deleted? && (project.md5 != remote_projects[project.name].md5) }
   end
   
   def not_configured_projects
