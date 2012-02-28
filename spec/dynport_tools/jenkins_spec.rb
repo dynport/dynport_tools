@@ -15,7 +15,7 @@ describe "DynportTools::Jenkins" do
     end
     
     it "can be initialized" do
-      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name", :rgne => "true").should return_values(:url => "some/url", 
+      DynportTools::Jenkins::RemoteProject.new(:url => "some/url", :name => "Some Name").should return_values(:url => "some/url", 
         :name => "Some Name"
       )
     end
