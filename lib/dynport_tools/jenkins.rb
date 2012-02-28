@@ -93,6 +93,14 @@ class DynportTools::Jenkins
     to_destroy
   end
   
+  def projects_to_create
+    to_create  = []
+    configured_projects.each do |name, project|
+      to_create << project if !project.destroyed? && !remote_projects.keys.include?(name)
+    end
+    to_create
+  end
+  
   def remote_projects
     project_details.inject({}) do |hash, (url, project_hash)|
       hash[project_hash[:name]] = RemoteProject.from_details_hash(project_hash)

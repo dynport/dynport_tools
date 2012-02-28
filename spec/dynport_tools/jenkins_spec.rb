@@ -3,6 +3,11 @@ require 'spec_helper'
 describe "DynportTools::Jenkins" do
   let(:url) { "http://some.url.com:8098" }
   let(:jenkins) { DynportTools::Jenkins.new(url) }
+  let(:proj1) { double("proj1", :destroyed? => false) }
+  let(:proj2) { double("proj2", :destroyed? => true) }
+  let(:proj3) { double("proj3", :destroyed? => true) }
+  let(:proj4) { double("proj4", :destroyed? => false) }
+  
   before(:each) do
     Typhoeus::Request.stub!(:post).and_return nil
   end
@@ -147,10 +152,6 @@ describe "DynportTools::Jenkins" do
   end
   
   describe "#projects_to_destroy" do
-    let(:proj1) { double("proj1", :destroyed? => false) }
-    let(:proj2) { double("proj1", :destroyed? => true) }
-    let(:proj3) { double("proj1", :destroyed? => true) }
-    
     it "returns an array" do
       remote_projects = {
         "proj1" => proj1,
@@ -164,6 +165,28 @@ describe "DynportTools::Jenkins" do
       }
       jenkins.stub!(:configured_projects).and_return(projects)
       jenkins.projects_to_destroy.should == [proj3]
+    end
+  end
+  
+  describe "#projects_to_create" do
+    it "returns the correct array" do
+      jenkins.stub!(:remote_projects).and_return({})
+      configured_projects = {
+        "proj1" => proj1,
+        "proj2" => proj2, # destroyed
+        "proj3" => proj3, # destroyed
+        "proj4" => proj4,
+      }
+      jenkins.stub!(:configured_projects).and_return(configured_projects)
+      jenkins.projects_to_create.count.should == 2
+      jenkins.projects_to_create.should include(proj1)
+      jenkins.projects_to_create.should include(proj4)
+      remote_projects = {
+        "proj1" => proj1,
+        "proj3" => proj3,
+      }
+      jenkins.stub!(:remote_projects).and_return(remote_projects)
+      jenkins.projects_to_create.should == [proj4]
     end
   end
 
