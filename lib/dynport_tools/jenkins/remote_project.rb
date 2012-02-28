@@ -1,5 +1,9 @@
 class DynportTools::Jenkins::RemoteProject
   attr_accessor :url, :name, :xml
+  
+  def self.from_details_hash(project_hash)
+    new(:url => project_hash[:url], :name => project_hash[:name], :xml => project_hash[:body])
+  end
     
   def initialize(options = {})
     options.each do |key, value|

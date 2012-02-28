@@ -117,11 +117,61 @@ describe "DynportTools::Jenkins" do
       }
     end
   end
+  
+  describe "#configured_projects" do
+    it "returns an empty array by default" do
+      jenkins.configured_projects.should == {}
+    end
+    
+    it "allows adding of projects to the configured_projects array" do
+      jenkins.configured_projects[:a] = 1
+      jenkins.configured_projects[:b] = 2
+      jenkins.configured_projects.should == { :a => 1, :b => 2 }
+    end
+  end
+  
+  describe "#configured_and_destroyed_projects" do
+    it "returns a hash" do
+      jenkins.configured_and_destroyed_projects
+    end
+    
+    it "returns the correct hash" do
+      projects = {
+        "proj1" => double("proj1", :destroyed? => false),
+        "proj2" => double("proj2", :destroyed? => true),
+        "proj3" => double("proj3", :destroyed? => true),
+      }
+      jenkins.stub!(:configured_projects).and_return(projects)
+      jenkins.configured_and_destroyed_projects.keys.should == %w(proj2 proj3)
+    end
+  end
+  
+  describe "#projects_to_destroy" do
+    let(:proj1) { double("proj1", :destroyed? => false) }
+    let(:proj2) { double("proj1", :destroyed? => true) }
+    let(:proj3) { double("proj1", :destroyed? => true) }
+    
+    it "returns an array" do
+      remote_projects = {
+        "proj1" => proj1,
+        "proj3" => proj3,
+      }
+      jenkins.stub!(:remote_projects).and_return(remote_projects)
+      projects = {
+        "proj1" => proj1,
+        "proj2" => proj2,
+        "proj3" => proj3,
+      }
+      jenkins.stub!(:configured_projects).and_return(projects)
+      jenkins.projects_to_destroy.should == [proj3]
+    end
+  end
 
   describe "#remote_projects" do
     before(:each) do
       jenkins.stub(:project_details).and_return({})
     end
+    
     it "calls project_details" do
       jenkins.should_receive(:project_details).and_return({})
       jenkins.remote_projects

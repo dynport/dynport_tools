@@ -74,9 +74,29 @@ class DynportTools::Jenkins
     cache[:projects_details] = jobs
   end
   
+  def configured_projects
+    cache[:configured_projects] ||= {}
+  end
+  
+  def configured_and_destroyed_projects
+    configured_projects.inject({}) do |hash, (project_name, project)|
+      hash[project_name] = project if project.destroyed?
+      hash
+    end
+  end
+  
+  def projects_to_destroy
+    to_destroy = []
+    configured_and_destroyed_projects.each do |name, project|
+      to_destroy << project if remote_projects.keys.include?(name)
+    end
+    to_destroy
+  end
+  
   def remote_projects
     project_details.inject({}) do |hash, (url, project_hash)|
-      hash.merge!(project_hash[:name] => RemoteProject.new(:url => project_hash[:url], :name => project_hash[:name], :xml => project_hash[:body]))
+      hash[project_hash[:name]] = RemoteProject.from_details_hash(project_hash)
+      hash
     end
   end
 end
