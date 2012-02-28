@@ -24,14 +24,14 @@ GEM
     rbx-require-relative (0.0.5)
     rcov (0.9.9)
     redis (2.2.1)
-    rspec (2.3.0)
-      rspec-core (~> 2.3.0)
-      rspec-expectations (~> 2.3.0)
-      rspec-mocks (~> 2.3.0)
-    rspec-core (2.3.1)
-    rspec-expectations (2.3.0)
+    rspec (2.8.0)
+      rspec-core (~> 2.8.0)
+      rspec-expectations (~> 2.8.0)
+      rspec-mocks (~> 2.8.0)
+    rspec-core (2.8.0)
+    rspec-expectations (2.8.0)
       diff-lcs (~> 1.1.2)
-    rspec-mocks (2.3.0)
+    rspec-mocks (2.8.0)
     ruby-debug (0.10.4)
       columnize (>= 0.1)
       ruby-debug-base (~> 0.10.4.0)
@@ -61,7 +61,7 @@ DEPENDENCIES
   rb-fsevent
   rcov
   redis
-  rspec (~> 2.3.0)
+  rspec (= 2.8.0)
   ruby-debug
   spork
   term-ansicolor
