@@ -74,8 +74,14 @@ class DynportTools::Jenkins
     cache[:projects_details] = jobs
   end
   
+  CONFIGURED_PROJECTS_HASH = :configured_projects_hash
+  
+  def configured_projects_hash=(new_hash)
+    cache[CONFIGURED_PROJECTS_HASH] = new_hash
+  end
+  
   def configured_projects_hash
-    cache[:configured_projects_hash] ||= {}
+    cache[CONFIGURED_PROJECTS_HASH] ||= {}
   end
   
   def configured_projects

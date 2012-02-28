@@ -250,6 +250,12 @@ describe "DynportTools::Jenkins" do
       jenkins.projects_to_update.should == []
     end
   end
+  
+  it "allows setting of the configured_projects_hash" do
+    jenkins.configured_projects_hash.should == {}
+    jenkins.configured_projects_hash = { :a => 1 }
+    jenkins.configured_projects_hash.should == { :a => 1 }
+  end
 
   describe "#remote_projects" do
     before(:each) do
