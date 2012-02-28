@@ -142,6 +142,8 @@ describe "DynportTools::Jenkins" do
       jenkins.configured_projects_hash[:a] = 1
       jenkins.configured_projects_hash[:b] = 2
       jenkins.configured_projects_hash.should == { :a => 1, :b => 2 }
+      jenkins.clear_cache
+      jenkins.configured_projects_hash.should == { :a => 1, :b => 2 }
     end
   end
   

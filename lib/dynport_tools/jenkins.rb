@@ -38,8 +38,12 @@ class DynportTools::Jenkins
   end
   
   def post_request(path, options = nil)
-    @cache = {}
+    clear_cache
     Typhoeus::Request.post(*["#{url}/#{path}", options].compact)
+  end
+  
+  def clear_cache
+    cache.clear
   end
   
   def cache
@@ -77,11 +81,11 @@ class DynportTools::Jenkins
   CONFIGURED_PROJECTS_HASH = :configured_projects_hash
   
   def configured_projects_hash=(new_hash)
-    cache[CONFIGURED_PROJECTS_HASH] = new_hash
+    @configured_projects_hash = new_hash
   end
   
   def configured_projects_hash
-    cache[CONFIGURED_PROJECTS_HASH] ||= {}
+    @configured_projects_hash ||= {}
   end
   
   def configured_projects
