@@ -9,15 +9,15 @@ describe "DynportTools::XmlFile" do
   
   describe "#initialize" do
     it "sets the correct path" do
-      DynportTools::XmlFile.new(FILE1).path.should == FILE1.to_s
+      expect(DynportTools::XmlFile.new(FILE1).path).to eql(FILE1.to_s)
     end
     
     it "also sets the pathwhen given as hash" do
-      DynportTools::XmlFile.new(:path => FILE1).path.should == FILE1.to_s
+      expect(DynportTools::XmlFile.new(:path => FILE1).path).to eql(FILE1.to_s)
     end
     
     it "sets content when given" do
-      DynportTools::XmlFile.new(:content => "some content").content.should == "some content"
+      expect(DynportTools::XmlFile.new(:content => "some content").content).to eql("some content")
     end
   end
   
@@ -47,20 +47,20 @@ describe "DynportTools::XmlFile" do
       file.stub!(:doc).and_return(double("root", :root => root))
       res = double("response")
       file.should_receive(:parse_node).with(root).and_return res
-      file.nodes_hash.should == { "product" => res }
+      expect(file.nodes_hash).to eql({ "product" => res })
     end
     
     let(:key) { { :name => "file", "name" => "some_name" } }
     
     it "sets the root node" do
-      file.nodes_hash[key]["size"].should == "101"
-      file.nodes_hash[key]["title"].should == "Some Title"
+      expect(file.nodes_hash[key]["size"]).to eql("101")
+      expect(file.nodes_hash[key]["title"]).to eql("Some Title")
     end
   end
   
   describe "#parse_node" do
     it "returns a the inner text as value when only text inside" do
-      file.parse_node(file.doc.root.at("size")).should == "101"
+      expect(file.parse_node(file.doc.root.at("size"))).to eql("101")
     end
     
     it "sets blank texts to nil" do
@@ -68,7 +68,7 @@ describe "DynportTools::XmlFile" do
     end
     
     it "extracts subnodes" do
-      file.parse_node(file.doc.root.at("attributes")).should == {"rights" => "rw", "type" => "file" }
+      expect(file.parse_node(file.doc.root.at("attributes"))).to eql({"rights" => "rw", "type" => "file" })
     end
     
     it "extracts array of tracks" do
@@ -82,29 +82,29 @@ describe "DynportTools::XmlFile" do
   
   describe "key_for_node" do
     it "returns a string when node has no attributes" do
-      file.key_for_node(file.doc.root.at("size")).should == "size"
+      expect(file.key_for_node(file.doc.root.at("size"))).to eql("size")
     end
     
     it "includes the attributes when node has attributes" do
-      file.key_for_node(file.doc.root).should == { :name => "file", "name" => "some_name" }
+      expect(file.key_for_node(file.doc.root)).to eql({ :name => "file", "name" => "some_name" })
     end
   end
   
   describe "#flatten_hash" do
     it "returns a flat hash when all arrays have length 1" do
-      file.flatten_hash({"a" => [1]}).should == { "a" => 1 }
+      expect(file.flatten_hash({"a" => [1]})).to eql({ "a" => 1 })
     end
     
     it "does not break on empty hashes" do
-      file.flatten_hash({"a" => 1}).should == { "a" => 1 }
+      expect(file.flatten_hash({"a" => 1})).to eql({ "a" => 1 })
     end
     
     it "does not flatten arrays with more than one element" do
-      file.flatten_hash({"a" => [1, 2]}).should == { "a" => [1, 2] }
+      expect(file.flatten_hash({"a" => [1, 2]})).to eql({ "a" => [1, 2] })
     end
     
     it "sets empty arrays to nil" do
-      file.flatten_hash({"a" => []}).should == { "a" => nil }
+      expect(file.flatten_hash({"a" => []})).to eql({ "a" => nil })
     end
   end
 end

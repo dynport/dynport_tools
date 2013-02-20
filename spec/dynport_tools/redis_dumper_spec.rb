@@ -9,7 +9,7 @@ describe "DynportTools::RedisDumper" do
     it "can be initialized with redis" do
       redis = double("redis")
       dumper = DynportTools::RedisDumper.new(redis)
-      dumper.redis.should == redis
+      expect(dumper.redis).to eql(redis)
     end
   end
   
@@ -17,12 +17,12 @@ describe "DynportTools::RedisDumper" do
     it "calls zrevrange the correct number of times" do
       redis.should_receive(:zrevrange).with("redis_key", 0, 1, :with_scores => true).and_return(["1", "2", "2", "4"])
       redis.should_receive(:zrevrange).with("redis_key", 2, 3, :with_scores => true).and_return(["3", "2"])
-      dumper.zset_to_hash("redis_key", 2).should == { "1" => "2", "2" => "4", "3" => "2" }
+      expect(dumper.zset_to_hash("redis_key", 2)).to eql({ "1" => "2", "2" => "4", "3" => "2" })
     end
     
     it "only calls once when window is big enough" do
       redis.should_receive(:zrevrange).with("redis_key", 0, 9999, :with_scores => true).and_return(["1", "2", "2", "4"])
-      dumper.zset_to_hash("redis_key").should == { "1" => "2", "2" => "4" }
+      expect(dumper.zset_to_hash("redis_key")).to eql({ "1" => "2", "2" => "4" })
     end
   end
   
@@ -45,7 +45,7 @@ describe "DynportTools::RedisDumper" do
       Redis.should_receive(:new).with(:host => "host", :port => "port").and_return redis
       dumper.redis = nil
       dumper.run_from_args(["host", "port", "key"])
-      dumper.redis.should == redis
+      expect(dumper.redis).to eql(redis)
     end
     
     it "calls dump_hash with zset_to_hash when type is zset" do

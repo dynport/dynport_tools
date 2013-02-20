@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
 require 'dynport_tools'
 require "timecop"
-require "ruby-debug"
+require "pry"
 
 if defined?(Debugger) && Debugger.respond_to?(:settings)
   Debugger.settings[:autolist] = 1
@@ -16,10 +16,9 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
   config.include DynportTools::HaveAttributesMatcher
-  config.after(:each) do
-    Timecop.return
-  end
-  config.filter_run :focus => true
+  
+  config.treat_symbols_as_metadata_keys_with_true_values = true
+  config.filter_run focus: true
   config.run_all_when_everything_filtered = true
 end
 

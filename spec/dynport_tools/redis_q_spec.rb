@@ -16,7 +16,7 @@ describe DynportTools::RedisQ do
       f.puts("pidfile #{redis_pid_path}")
     end
     begin
-      Redis.current = Redis.new(:path => redis_socket_path)
+      Redis.current = Redis.new(path: redis_socket_path)
       Redis.current.info
     rescue
       system "redis-server #{redis_config_path}"
@@ -51,95 +51,99 @@ describe DynportTools::RedisQ do
   
   describe "#initialize" do
     it "sets the retry_count to the default value when nil" do
-      DynportTools::RedisQ.new("some/queue").retry_count.should == 3
+      expect(DynportTools::RedisQ.new("some/queue").retry_count).to eql(3)
     end
     
     it "sets the retry_count to a custom value when given" do
-      DynportTools::RedisQ.new("some/queue", :retry_count => 2).retry_count.should == 2
+      expect(DynportTools::RedisQ.new("some/queue", retry_count: 2).retry_count).to eql(2)
     end
     
     it "sets the redis_key" do
-      DynportTools::RedisQ.new("some/queue").redis_key.should == "some/queue"
+      expect(DynportTools::RedisQ.new("some/queue").redis_key).to eql("some/queue")
     end
     
     it "sets the redis connection" do
-      DynportTools::RedisQ.new("some/queue", :redis => "redis con").redis.should == "redis con"
+      expect(DynportTools::RedisQ.new("some/queue", redis: "redis con").redis).to eql("redis con")
     end
   end
   
   it "sets the redis key when initializing" do
     queue = DynportTools::RedisQ.new("some/queue")
-    queue.redis_key.should == "some/queue"
+    expect(queue.redis_key).to eql("some/queue")
   end
   
   describe "#push_many" do
     it "pushes nested arrays" do
       queue.push_many([[1, 2], [3, 4]])
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["3", "4", "1", "2"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["3", 4.0], ["1", 2.0]])
     end
     
     it "also pushes hashes" do
       queue.push_many({ 2 => 4, 6 => 8})
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["6", "8", "2", "4"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["6", 8.0], ["2", 4.0]])
     end
     
     it "adds arrays of hashes" do
       queue.push_many([{ 2 => 4 }, { 6 => 8}])
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["6", "8", "2", "4"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["6", 8.0], ["2", 4.0]])
     end
   end
   
   describe "#push" do
     it "pushes the records with negative timestamps" do
-      Timecop.freeze(Time.at(112233))
-      queue.push(99)
-      Timecop.freeze(Time.at(112235))
-      queue.push(101)
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "-112233", "101", "-112235"]
+      Timecop.freeze(Time.at(112233)) do
+        queue.push(99)
+      end
+      Timecop.freeze(Time.at(112235)) do
+        queue.push(101)
+      end
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["99", -112233.0], ["101", -112235.0]])
     end
     
     it "does not push records when already on the queue" do
-      Timecop.freeze(Time.at(112233))
-      queue.push(99)
-      Timecop.freeze(Time.at(112235))
-      queue.push(99)
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "-112233"]
+      Timecop.freeze(Time.at(112233)) do
+        queue.push_many([99])
+      end
+      Timecop.freeze(Time.at(112235)) do
+        queue.push_many([99])
+      end
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["99", -112233.0]])
     end
     
     it "changes the priority of a member when higher" do
       queue.push(99, 1)
       queue.push(99, 2)
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "2"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["99", 2.0]])
     end
     
     it "uses a custom priority when given" do
       queue.push(99, 1234)
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "1234"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["99", 1234.0]])
     end
     
     it "removes the key from the failed zset" do
       queue.mark_failed("99")
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == ["99", "1"]
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([["99", 1.0]])
       queue.push(99, 1234)
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == []
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([])
     end
     
     it "does not call redis.multi when no_multi is set to true" do
       redis.should_not_receive(:multi)
-      queue.push(99, 1234, :no_multi => true)
+      queue.push(99, 1234, no_multi: true)
     end
     
     it "does not call redis.zrem when failed is true" do
       redis.should_not_receive(:zrem)
-      queue.push(99, 1234, :failed => true)
+      queue.push(99, 1234, failed: true)
     end
   end
   
   it "returns the correct number of elements" do
-    queue.count.should == 0
+    expect(queue.count).to eql(0)
     queue.push(99, 1234)
     queue.push(101, 1234)
-    queue.count.should == 2
+    expect(queue.count).to eql(2)
   end
   
   describe "#pop" do
@@ -150,30 +154,30 @@ describe DynportTools::RedisQ do
     end
     
     it "returns the highest member and rank" do
-      queue.pop.should == { "101" => "100" }
+      expect(queue.pop).to eql({ "101" => 100.0 })
     end
     
     it "can also return 2 elements" do
-      queue.pop(2).should == { "101" => "100", "98" => "10" }
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["99", "1"]
+      expect(queue.pop(2)).to eql({ "101" => 100.0, "98" => 10.0 })
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["99", 1.0]])
     end
     
     it "can also return 3 elements" do
       queue.push("1", "0")
-      queue.pop(3).should == { "101" => "100", "98" => "10", "99" => "1" }
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["1", "0"]
+      expect(queue.pop(3)).to eql({ "101" => 100.0, "98" => 10.0, "99" => 1.0 })
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["1", 0.0]])
     end
     
     it "removes the member from the set" do
       queue.pop
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["98", "10", "99", "1"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["98", 10.0], ["99", 1.0]])
     end
     
     it "returns an empty array when nothing in the queue" do
       queue.pop
       queue.pop
       queue.pop
-      queue.pop.should == {}
+      expect(queue.pop).to eql({})
     end
   end
   
@@ -186,8 +190,8 @@ describe DynportTools::RedisQ do
       queue.each do |id|
         ids << id
       end
-      ids.should == ["100", "99", "101"]
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == []
+      expect(ids).to eql(["100", "99", "101"])
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([])
     end
     
     it "is able to yield batches" do
@@ -195,11 +199,11 @@ describe DynportTools::RedisQ do
       queue.push(100, 9)
       queue.push(101, 0)
       all_ids = []
-      queue.each(:batch_size => 2) do |ids|
+      queue.each(batch_size: 2) do |ids|
         all_ids << ids
       end
-      all_ids.should == [["100", "99"], ["101"]]
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == []
+      expect(all_ids).to eql([["100", "99"], ["101"]])
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([])
     end
     
     it "readds all ids to the queue which raised errors" do
@@ -213,9 +217,9 @@ describe DynportTools::RedisQ do
       stats = queue.each do |id|
         processor.process(id)
       end
-      stats[:ok].should == ["99", "101"]
+      expect(stats[:ok]).to eql(["99", "101"])
       stats[:errors]["100"].should match(/^some error/)
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["100", "9"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["100", 9.0]])
     end
     
     # change this to n times
@@ -225,28 +229,28 @@ describe DynportTools::RedisQ do
       processor.stub(:process).with("100").exactly(3).and_raise("some error")
       
       stats = queue.each { |id| processor.process(id) } 
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["100", "9"]
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == ["100", "1"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["100", 9.0]])
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([["100", 1.0]])
       
       stats = queue.each { |id| processor.process(id) } 
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == ["100", "9"]
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == ["100", "2"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([["100", 9.0]])
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([["100", 2.0]])
       
       stats = queue.each { |id| processor.process(id) } 
-      redis.zrevrange(key, 0, -1, :with_scores => true).should == []
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == ["100", "3"]
+      expect(redis.zrevrange(key, 0, -1, with_scores: true)).to eql([])
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([["100", 3.0]])
     end
   end
   
   describe "#mark_failed" do
     it "increments the counter in the zset" do
       queue.mark_failed("100")
-      redis.zrevrange("test/redis_queue/failed_counts", 0, -1, :with_scores => true).should == ["100", "1"]
+      expect(redis.zrevrange("test/redis_queue/failed_counts", 0, -1, with_scores: true)).to eql([["100", 1.0]])
     end
     
     it "returns the new failed count" do
-      queue.mark_failed("100").should == 1
-      queue.mark_failed("100").should == 2
+      expect(queue.mark_failed("100")).to eql(1)
+      expect(queue.mark_failed("100")).to eql(2)
     end
   end
 end

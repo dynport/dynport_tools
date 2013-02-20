@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "dynport_tools"
-  s.version = "0.2.22"
+  s.version = "0.2.23"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tobias Schwab"]
@@ -75,10 +75,10 @@ Gem::Specification.new do |s|
     "spec/spec_helper.rb",
     "spec/xml_diff_spec.rb"
   ]
-  s.homepage = "http://github.com/tobstarr/dynport_tools"
+  s.homepage = "http://github.com/dynport/dynport_tools"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.17"
+  s.rubygems_version = "1.8.24"
   s.summary = "Collection of various tools"
 
   if s.respond_to? :specification_version then

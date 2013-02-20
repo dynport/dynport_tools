@@ -16,30 +16,30 @@ describe DynportTools::Settings do
   it "allows setting a redis connection" do
     r = double("redis2")
     DynportTools::Settings.redis = r
-    DynportTools::Settings.redis.should == r
+    expect(DynportTools::Settings.redis).to eql(r)
   end
   
   it "allows addings new settings" do
     DynportTools::Settings.set(:refresh, 11)
-    DynportTools::Settings.defaults[:refresh].should == 11
+    expect(DynportTools::Settings.defaults[:refresh]).to eql(11)
   end
   
   it "returns the correct defaults" do
     DynportTools::Settings.set(:refresh, 12)
-    DynportTools::Settings.refresh.should == 12
+    expect(DynportTools::Settings.refresh).to eql(12)
   end
   
   it "allows setting of multiple settings at once" do
     DynportTools::Settings.set(:a => 1, :b => 2)
-    DynportTools::Settings.a.should == 1
-    DynportTools::Settings.b.should == 2
+    expect(DynportTools::Settings.a).to eql(1)
+    expect(DynportTools::Settings.b).to eql(2)
   end
   
   describe "#all" do
     it "fetches the correct values" do
       redis.hset("settings", "a", "1")
       redis.hset("settings", "b", "2")
-      DynportTools::Settings.all.should == { "a" => "1", "b" => "2" }
+      expect(DynportTools::Settings.all).to eql({ "a" => "1", "b" => "2" })
     end
     
     it "caches the fetched records" do
@@ -47,15 +47,15 @@ describe DynportTools::Settings do
         redis.hset("settings", "a", "1")
         redis.hset("settings", "b", "2")
         DynportTools::Settings.all
-        DynportTools::Settings.instance_variable_get("@all").should == { "a" => "1", "b" => "2" }
-        DynportTools::Settings.instance_variable_get("@cached_at").should == time
+        expect(DynportTools::Settings.instance_variable_get("@all")).to eql({ "a" => "1", "b" => "2" })
+        expect(DynportTools::Settings.instance_variable_get("@cached_at")).to eql(time)
       end
     end
     
     it "returns the cached settings when not expired" do
       DynportTools::Settings.stub(:expired?).and_return false
       DynportTools::Settings.instance_variable_set("@all", { "c" => "3" })
-      DynportTools::Settings.all.should == { "c" => "3" }
+      expect(DynportTools::Settings.all).to eql({ "c" => "3" })
     end
   end
   
@@ -106,14 +106,14 @@ describe DynportTools::Settings do
       DynportTools::Settings.set :refresh, 11
       DynportTools::Settings.instance_variable_set("@all", { "b" => "2" })
       DynportTools::Settings.set_value(:refresh, 12)
-      DynportTools::Settings.instance_variable_get("@all").should == { "refresh" => "12" }
+      expect(DynportTools::Settings.instance_variable_get("@all")).to eql({ "refresh" => "12" })
     end
     
     it "sets the updated_at field" do
       Timecop.freeze(Time.at(11)) do
         DynportTools::Settings.set :refresh, 11
         DynportTools::Settings.set_value(:refresh, 12)
-        redis.get("settings/updated_at").should == "11"
+        expect(redis.get("settings/updated_at")).to eql("11")
       end
     end
   end
@@ -126,52 +126,52 @@ describe DynportTools::Settings do
     
     it "sets the defaults array" do
       DynportTools::Settings.set :refresh, 11
-      DynportTools::Settings.defaults[:refresh].should == 11
+      expect(DynportTools::Settings.defaults[:refresh]).to eql(11)
     end
     
     it "allows addings settings" do
       DynportTools::Settings.set :refresh, 10
-      DynportTools::Settings.refresh.should == 10
+      expect(DynportTools::Settings.refresh).to eql(10)
     end
     
     it "uses settings stored in redis" do
       redis.hset("settings", "refresh", 20)
       DynportTools::Settings.set(:refresh, 10)
-      DynportTools::Settings.refresh.should == 20
+      expect(DynportTools::Settings.refresh).to eql(20)
     end
     
     it "returns the correct types for integers" do
       redis.hset("settings", "enabled", true)
       DynportTools::Settings.set(:enabled, false)
-      DynportTools::Settings.enabled.should == true
+      expect(DynportTools::Settings.enabled).to eql(true)
     end
     
     describe "with boolean methods" do
       it "adds the enable_<key>! method" do
         DynportTools::Settings.set(:new_feature, true)
         DynportTools::Settings.disable_new_feature!
-        DynportTools::Settings.new_feature.should == false
+        expect(DynportTools::Settings.new_feature).to eql(false)
       end
       
       it "adds the enable_<key>! method" do
         DynportTools::Settings.set(:new_feature, false)
         DynportTools::Settings.enable_new_feature!
-        DynportTools::Settings.new_feature.should == true
+        expect(DynportTools::Settings.new_feature).to eql(true)
       end
       
       it "adds the new_feature?`method" do
         DynportTools::Settings.set(:new_feature, false)
-        DynportTools::Settings.new_feature?.should == false
+        expect(DynportTools::Settings.new_feature?).to eql(false)
         DynportTools::Settings.enable_new_feature!
-        DynportTools::Settings.new_feature?.should == true
+        expect(DynportTools::Settings.new_feature?).to eql(true)
       end
     end
     
     it "allows setting of settings" do
       DynportTools::Settings.set(:refresh, 12)
       DynportTools::Settings.set_refresh(13)
-      DynportTools::Settings.refresh.should == 13
-      redis.hgetall("settings")["refresh"].should == "13"
+      expect(DynportTools::Settings.refresh).to eql(13)
+      expect(redis.hgetall("settings")["refresh"]).to eql("13")
     end
   end
 end

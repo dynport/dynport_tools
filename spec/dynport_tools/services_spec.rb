@@ -17,11 +17,11 @@ describe "Services" do
   describe "solr_root" do
     it "allows setting the solr root" do
       services.solr_data_root = "/tmp/solr_path"
-      services.solr_data_root.should == "/tmp/solr_path"
+      expect(services.solr_data_root).to eql("/tmp/solr_path")
     end
     
     it "returns /opt/solr by default" do
-      services.solr_data_root.should == "/opt/solr"
+      expect(services.solr_data_root).to eql("/opt/solr")
     end
   end
   
@@ -82,7 +82,7 @@ describe "Services" do
       
       it "returns the cirrect core_names" do
         services.stub!(:get).and_return(File.read(root.join("spec/fixtures/solr_admin.html")))
-        services.solr_core_names.should == %w(test supernova_test some_other)
+        expect(services.solr_core_names).to eql(%w(test supernova_test some_other))
       end
     end
     
@@ -121,7 +121,7 @@ describe "Services" do
             </cores>
           </solr>
         ).gsub(/^\s+/, "")
-        File.read(solr_xml).should == expected
+        expect(File.read(solr_xml)).to eql(expected)
       end
       
       it "raises an error when solr.xml already exists" do
@@ -232,11 +232,11 @@ describe "Services" do
     end
     
     it "returns the correct redis_socket_path when redis_path_prefix is set" do
-      services.redis_socket_path.should == "/tmp/path/to/redis.socket"
+      expect(services.redis_socket_path).to eql("/tmp/path/to/redis.socket")
     end
     
     it "returns the correct redis_config_path when redis_path_prefix is set" do
-      services.redis_config_path.should == "/tmp/path/to/redis.conf"
+      expect(services.redis_config_path).to eql("/tmp/path/to/redis.conf")
     end
     
     describe "#redis_running?" do
@@ -288,23 +288,23 @@ describe "Services" do
     describe "#redis_config_hash" do
       it "returns the default hash by default" do
         services.redis_path_prefix = "/path/to/redis"
-        services.redis_config_hash.should == {
+        expect(services.redis_config_hash).to eql({
           :unixsocket => "/path/to/redis.socket",
           :logfile => "/path/to/redis.log",
           :daemonize => "yes",
           :port => 0
-        }
+        })
       end
       
       it "merges the custom set redis_config_path" do
         services.redis_path_prefix = "/path/to/redis"
         services.redis_config_hash = { :port => 1234 }
-        services.redis_config_hash.should == {
+        expect(services.redis_config_hash).to eql({
           :unixsocket => "/path/to/redis.socket",
           :port => 1234,
           :logfile => "/path/to/redis.log",
           :daemonize => "yes"
-        }
+        })
       end
     end
   
@@ -318,7 +318,7 @@ describe "Services" do
           :port => 0,
           :unixsocket => "/path/to/socket"
         )
-        services.redis_config.split("\n").sort.should == ["port 0", "unixsocket /path/to/socket"].sort
+        expect(services.redis_config.split("\n").sort).to eql(["port 0", "unixsocket /path/to/socket"].sort)
       end
       
       it "does not include empty values" do
@@ -326,7 +326,7 @@ describe "Services" do
           :port => nil,
           :unixsocket => "/path/to/socket"
         )
-        services.redis_config.should == "unixsocket /path/to/socket"
+        expect(services.redis_config).to eql("unixsocket /path/to/socket")
       end
     end
   end
@@ -335,7 +335,7 @@ describe "Services" do
     services.unstub(:system_call)
     services.stub(:puts)
     Kernel.should_receive(:`).with("ls -l").and_return("the result")
-    services.system_call("ls -l").should == "the result"
+    expect(services.system_call("ls -l")).to eql("the result")
   end
   
   describe "http methods" do
@@ -348,7 +348,7 @@ describe "Services" do
     
       it "executes the correct system call" do
         services.should_receive(:system_call).with(%(curl -s -I "#{url}" | head -n 1)).and_return("HTTP/1.1 200 OK")
-        services.head(url).should == 200
+        expect(services.head(url)).to eql(200)
       end
     
       it "returns nil when result is empty" do
@@ -364,7 +364,7 @@ describe "Services" do
       
       it "executes the correct system call" do
         services.should_receive(:system_call).with(%(curl -s "#{url}")).and_return("response body")
-        services.get(url).should == "response body"
+        expect(services.get(url)).to eql("response body")
       end
     end
     

@@ -13,17 +13,14 @@ gem 'diff-lcs'
 
 group :development do
   gem "rake"
-  gem "rspec", "2.8.0"
-  gem "bundler", "~> 1.0.0"
-  gem "jeweler", "~> 1.6.4"
-  gem "rcov", ">= 0"
+  gem "rspec", "~> 2.12"
+  gem "bundler"
   gem 'ZenTest', '4.5.0'
   gem "autotest"
   gem "autotest-growl"
-  gem "ruby-debug"
   gem "timecop"
   gem "guard"
   gem "growl"
-  gem "rb-fsevent"
+  gem "rb-fsevent", '~> 0.9.3'
   gem "spork"
 end
